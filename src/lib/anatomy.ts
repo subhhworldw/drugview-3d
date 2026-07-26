@@ -36,4 +36,7 @@ export const ORGAN_LABELS: Record<Organ, string> = {
   thyroid: "Thyroid",
   skin: "Skin",
   bone: "Bone",
+  bone_marrow: "Bone marrow",
+  muscle: "Muscle",
+  lymph_node: "Lymph node",
 };
