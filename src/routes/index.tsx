@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { DRUGS, DRUG_CLASSES, searchDrugs } from "@/lib/drugs-data";
+import { useQuery } from "@tanstack/react-query";
+import { fetchAllDrugs, filterDrugs, uniqueDrugClasses } from "@/lib/drugs-data";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -28,11 +29,19 @@ function Library() {
   const [q, setQ] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
 
+  const { data: drugs = [], isLoading, error } = useQuery({
+    queryKey: ["drugs"],
+    queryFn: fetchAllDrugs,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const drugClasses = useMemo(() => uniqueDrugClasses(drugs), [drugs]);
+
   const results = useMemo(() => {
-    let out = searchDrugs(q);
+    let out = filterDrugs(drugs, q);
     if (selectedClass) out = out.filter((d) => d.drugClass === selectedClass);
     return out;
-  }, [q, selectedClass]);
+  }, [drugs, q, selectedClass]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -54,7 +63,7 @@ function Library() {
             </div>
           </div>
           <div className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground md:block">
-            {DRUGS.length} drugs · {DRUG_CLASSES.length} classes
+            {drugs.length} drugs · {drugClasses.length} classes
           </div>
         </div>
       </header>
@@ -104,7 +113,7 @@ function Library() {
             <FilterChip active={!selectedClass} onClick={() => setSelectedClass(null)}>
               All classes
             </FilterChip>
-            {DRUG_CLASSES.map((c) => (
+            {drugClasses.map((c) => (
               <FilterChip
                 key={c}
                 active={selectedClass === c}
@@ -119,7 +128,13 @@ function Library() {
 
       {/* Grid */}
       <section className="mx-auto max-w-6xl px-6 py-8">
-        {results.length === 0 ? (
+        {isLoading ? (
+          <div className="py-24 text-center text-muted-foreground">Loading drug library…</div>
+        ) : error ? (
+          <div className="py-24 text-center text-destructive">
+            Failed to load drug library.
+          </div>
+        ) : results.length === 0 ? (
           <div className="py-24 text-center text-muted-foreground">
             No drugs match &ldquo;{q}&rdquo;.
           </div>
