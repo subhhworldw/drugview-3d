@@ -1,24 +1,194 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { DRUGS, DRUG_CLASSES, searchDrugs } from "@/lib/drugs-data";
 
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
 export const Route = createFileRoute("/")({
-  component: Index,
+  head: () => ({
+    meta: [
+      { title: "Drug-View — 3D drug pharmacology visualizer" },
+      {
+        name: "description",
+        content:
+          "Interactive 3D visualization of how common drugs move through the body: absorption, distribution, receptor binding, metabolism and elimination. For medical students and clinicians.",
+      },
+      { property: "og:title", content: "Drug-View — 3D drug pharmacology visualizer" },
+      {
+        property: "og:description",
+        content:
+          "Search a curated pharmacology library and watch each drug animate through the body in 3D.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Library,
 });
 
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
+function Library() {
+  const [q, setQ] = useState("");
+  const [selectedClass, setSelectedClass] = useState<string | null>(null);
+
+  const results = useMemo(() => {
+    let out = searchDrugs(q);
+    if (selectedClass) out = out.filter((d) => d.drugClass === selectedClass);
+    return out;
+  }, [q, selectedClass]);
+
   return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Header */}
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 2v20M2 12h20" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="9" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="font-mono text-sm uppercase tracking-widest">Drug-View</h1>
+              <p className="text-[11px] text-muted-foreground">
+                3D pharmacology visualizer
+              </p>
+            </div>
+          </div>
+          <div className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground md:block">
+            {DRUGS.length} drugs · {DRUG_CLASSES.length} classes
+          </div>
+        </div>
+      </header>
+
+      {/* Hero + search */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-6 py-12">
+          <h2 className="max-w-2xl text-4xl font-semibold tracking-tight md:text-5xl">
+            See a drug move through the body.
+          </h2>
+          <p className="mt-4 max-w-xl text-muted-foreground">
+            Pick any medication to watch its route of administration, distribution,
+            target binding, metabolism and elimination animate in 3D — with the
+            pharmacokinetic detail clinicians actually need.
+          </p>
+
+          <div className="mt-8 max-w-xl">
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.35-4.35" />
+              </svg>
+              <input
+                autoFocus
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search by name, brand, class or indication…"
+                className="w-full rounded-md border border-input bg-input/40 py-3 pl-10 pr-3 text-sm outline-none ring-primary/40 transition focus:border-primary focus:ring-2"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Filters */}
+      <section className="border-b border-border">
+        <div className="mx-auto max-w-6xl px-6 py-4">
+          <div className="flex flex-wrap gap-2">
+            <FilterChip active={!selectedClass} onClick={() => setSelectedClass(null)}>
+              All classes
+            </FilterChip>
+            {DRUG_CLASSES.map((c) => (
+              <FilterChip
+                key={c}
+                active={selectedClass === c}
+                onClick={() => setSelectedClass(c === selectedClass ? null : c)}
+              >
+                {c}
+              </FilterChip>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Grid */}
+      <section className="mx-auto max-w-6xl px-6 py-8">
+        {results.length === 0 ? (
+          <div className="py-24 text-center text-muted-foreground">
+            No drugs match &ldquo;{q}&rdquo;.
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {results.map((d) => (
+              <Link
+                key={d.slug}
+                to="/drug/$slug"
+                params={{ slug: d.slug }}
+                className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/60 hover:shadow-[var(--shadow-glow)]"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                      {d.drugClass}
+                    </div>
+                    <div className="mt-1 text-lg font-semibold group-hover:text-primary">
+                      {d.name}
+                    </div>
+                    {d.brand && (
+                      <div className="text-xs text-muted-foreground">{d.brand}</div>
+                    )}
+                  </div>
+                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {d.route}
+                  </div>
+                </div>
+                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                  {d.indication}
+                </p>
+                <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                  <span>t½ {d.halfLifeHours}h</span>
+                  <span>{d.elimination}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <footer className="border-t border-border">
+        <div className="mx-auto max-w-6xl px-6 py-8 text-center text-[11px] text-muted-foreground">
+          Drug-View · Educational tool · Not for clinical decision-making
+        </div>
+      </footer>
     </div>
+  );
+}
+
+function FilterChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 font-mono text-[10px] uppercase tracking-widest transition ${
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "border-border text-muted-foreground hover:border-primary/40 hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
