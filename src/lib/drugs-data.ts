@@ -18,7 +18,10 @@ export type Organ =
   | "pancreas"
   | "thyroid"
   | "skin"
-  | "bone";
+  | "bone"
+  | "bone_marrow"
+  | "muscle"
+  | "lymph_node";
 export type Elimination = "renal" | "hepatic" | "biliary" | "mixed" | "pulmonary";
 
 export interface Drug {
