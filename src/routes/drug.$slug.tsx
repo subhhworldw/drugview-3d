@@ -1,14 +1,26 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useState } from "react";
-import { getDrug } from "@/lib/drugs-data";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { fetchDrugBySlug } from "@/lib/drugs-data";
 import { BodySceneClient } from "@/components/body-scene";
 import { DrugInfoPanel } from "@/components/drug-info-panel";
 import { PhaseTimeline } from "@/components/phase-timeline";
 
-export const Route = createFileRoute("/drug/$slug")({
-  loader: ({ params }) => {
-    const drug = getDrug(params.slug);
+const drugQueryOptions = (slug: string) => ({
+  queryKey: ["drug", slug],
+  queryFn: async () => {
+    const drug = await fetchDrugBySlug(slug);
     if (!drug) throw notFound();
+    return drug;
+  },
+  staleTime: 5 * 60 * 1000,
+});
+
+export const Route = createFileRoute("/drug/$slug")({
+  loader: async ({ params, context }) => {
+    const drug = await context.queryClient.ensureQueryData(
+      drugQueryOptions(params.slug),
+    );
     return { drug };
   },
   head: ({ loaderData }) => {
@@ -35,6 +47,20 @@ export const Route = createFileRoute("/drug/$slug")({
     };
   },
   component: DrugPage,
+  errorComponent: () => (
+    <div className="flex min-h-screen items-center justify-center bg-background p-6 text-center">
+      <div>
+        <h1 className="text-2xl font-semibold">Couldn&rsquo;t load drug</h1>
+        <p className="mt-2 text-muted-foreground">Please try again in a moment.</p>
+        <Link
+          to="/"
+          className="mt-6 inline-flex rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+        >
+          Back to library
+        </Link>
+      </div>
+    </div>
+  ),
   notFoundComponent: () => (
     <div className="flex min-h-screen items-center justify-center bg-background p-6 text-center">
       <div>
@@ -54,7 +80,8 @@ export const Route = createFileRoute("/drug/$slug")({
 });
 
 function DrugPage() {
-  const { drug } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const { data: drug } = useSuspenseQuery(drugQueryOptions(slug));
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(true);
 
