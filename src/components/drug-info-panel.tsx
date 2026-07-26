@@ -58,8 +58,18 @@ export function DrugInfoPanel({ drug }: Props) {
         </ul>
       </Section>
 
-      <footer className="mt-auto border-t border-border pt-4 text-[11px] text-muted-foreground">
-        Educational tool — not a prescribing reference. Verify against current label.
+      <footer className="mt-auto flex flex-col gap-2 border-t border-border pt-4 text-[11px] text-muted-foreground">
+        <span>Educational tool — not a prescribing reference. Verify against current label.</span>
+        {drug.sourceUrl && (
+          <a
+            href={drug.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-mono uppercase tracking-widest text-muted-foreground underline-offset-4 transition-colors hover:text-primary hover:underline"
+          >
+            Reference ↗
+          </a>
+        )}
       </footer>
     </div>
   );
