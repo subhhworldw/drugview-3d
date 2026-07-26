@@ -135,6 +135,9 @@ export function humanizeOrgan(o: Organ | "outside"): string {
     thyroid: "thyroid",
     skin: "skin",
     bone: "bone",
+    bone_marrow: "bone marrow",
+    muscle: "muscle",
+    lymph_node: "lymph node",
     outside: "outside the body",
   };
   return map[o];
