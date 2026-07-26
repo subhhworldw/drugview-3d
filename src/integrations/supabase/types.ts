@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      drugs: {
+        Row: {
+          absorption_site: string
+          brand: string | null
+          clinical_notes: string[]
+          created_at: string
+          drug_class: string
+          elimination: string
+          half_life_hours: number
+          id: string
+          indication: string
+          mechanism: string
+          metabolism_enzymes: string[]
+          metabolism_organ: string
+          name: string
+          onset_minutes: number
+          peak_minutes: number
+          receptors: string[]
+          route: string
+          slug: string
+          source_url: string | null
+          target_organ: string
+          typical_dose: string
+          updated_at: string
+        }
+        Insert: {
+          absorption_site: string
+          brand?: string | null
+          clinical_notes?: string[]
+          created_at?: string
+          drug_class: string
+          elimination: string
+          half_life_hours: number
+          id?: string
+          indication: string
+          mechanism: string
+          metabolism_enzymes?: string[]
+          metabolism_organ: string
+          name: string
+          onset_minutes: number
+          peak_minutes: number
+          receptors?: string[]
+          route: string
+          slug: string
+          source_url?: string | null
+          target_organ: string
+          typical_dose: string
+          updated_at?: string
+        }
+        Update: {
+          absorption_site?: string
+          brand?: string | null
+          clinical_notes?: string[]
+          created_at?: string
+          drug_class?: string
+          elimination?: string
+          half_life_hours?: number
+          id?: string
+          indication?: string
+          mechanism?: string
+          metabolism_enzymes?: string[]
+          metabolism_organ?: string
+          name?: string
+          onset_minutes?: number
+          peak_minutes?: number
+          receptors?: string[]
+          route?: string
+          slug?: string
+          source_url?: string | null
+          target_organ?: string
+          typical_dose?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
