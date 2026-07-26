@@ -16,6 +16,9 @@ export const ORGAN_POSITIONS: Record<Organ | "outside", [number, number, number]
   thyroid: [0, 2.4, 0.2],
   skin: [0.9, 0.5, 0.35],
   bone: [-1.0, -1.0, 0],
+  bone_marrow: [-1.0, -1.05, 0.05],
+  muscle: [-1.15, 0.6, 0.1],
+  lymph_node: [0.35, 1.9, 0.1],
   outside: [0, 4.5, 1.5],
 };
 
