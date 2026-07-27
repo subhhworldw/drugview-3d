@@ -8,7 +8,12 @@ import { createServerFn } from "@tanstack/react-start";
 
 export const lookupDrug = createServerFn({ method: "POST" })
   .inputValidator((data: { term: string }) => ({
-    term: String(data?.term ?? "").slice(0, 80),
+    // Whitelist: drug names only — letters, digits, space, - . / + ( ).
+    // Blocks quotes/braces that could alter the downstream openFDA query string.
+    term: String(data?.term ?? "")
+      .slice(0, 80)
+      .replace(/[^A-Za-z0-9 .\-/+()]/g, " ")
+      .replace(/\s+/g, " "),
   }))
   .handler(async ({ data }) => {
     const term = data.term.trim();
