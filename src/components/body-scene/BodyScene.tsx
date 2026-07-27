@@ -347,16 +347,16 @@ export function BodyScene({ drug, time, playing, onTimeChange }: Props) {
   }, [drug.slug]);
 
   return (
-    <Canvas camera={{ position: [0, 1.2, 7], fov: 45 }} dpr={[1, 2]}>
+    <Canvas camera={{ position: [0, 1.0, 9], fov: 45 }} dpr={[1, 2]}>
       <color attach="background" args={[bg]} />
-      <fog attach="fog" args={[bg, 8, 18]} />
+      <fog attach="fog" args={[bg, 10, 22]} />
 
       <Scene drug={drug} time={time} />
       <Ticker playing={playing} onTick={onTimeChange} duration={duration} time={time} />
       <OrbitControls
         enablePan={false}
-        minDistance={4}
-        maxDistance={12}
+        minDistance={5}
+        maxDistance={16}
         target={[0, 0.8, 0]}
         autoRotate={!playing}
         autoRotateSpeed={0.5}
