@@ -68,6 +68,18 @@ function Library() {
   const [classMenuOpen, setClassMenuOpen] = useState(false);
 
   const textMatches = useMemo(() => filterDrugs(drugs, q), [drugs, q]);
+
+  // Quick-access suggestion box under the search field.
+  const [suggestOpen, setSuggestOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(0);
+  const suggestions = useMemo(
+    () =>
+      q.trim().length === 0
+        ? []
+        : [...textMatches].sort((a, b) => a.name.localeCompare(b.name)).slice(0, 8),
+    [textMatches, q],
+  );
+
   const results = useMemo(() => {
     const list = selectedClass
       ? textMatches.filter((d) => d.drugClass === selectedClass)
