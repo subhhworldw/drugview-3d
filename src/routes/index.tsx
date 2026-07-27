@@ -68,10 +68,34 @@ function Library() {
   const [classMenuOpen, setClassMenuOpen] = useState(false);
 
   const textMatches = useMemo(() => filterDrugs(drugs, q), [drugs, q]);
-  const results = useMemo(
-    () => (selectedClass ? textMatches.filter((d) => d.drugClass === selectedClass) : textMatches),
-    [textMatches, selectedClass],
-  );
+  const results = useMemo(() => {
+    const list = selectedClass
+      ? textMatches.filter((d) => d.drugClass === selectedClass)
+      : textMatches;
+    return [...list].sort((a, b) => a.name.localeCompare(b.name));
+  }, [textMatches, selectedClass]);
+
+  // Progressive reveal, grouped under two-letter alphabetical headings (Aa, Ab…).
+  const PAGE = 30;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
+  useEffect(() => setVisibleCount(PAGE), [q, selectedClass]);
+
+  const visible = useMemo(() => results.slice(0, visibleCount), [results, visibleCount]);
+  const groups = useMemo(() => {
+    const out: { key: string; items: typeof visible }[] = [];
+    for (const d of visible) {
+      const raw = d.name.slice(0, 2);
+      const key =
+        raw.length < 2
+          ? raw.toUpperCase()
+          : raw[0].toUpperCase() + raw[1].toLowerCase();
+      const last = out[out.length - 1];
+      if (last && last.key === key) last.items.push(d);
+      else out.push({ key, items: [d] });
+    }
+    return out;
+  }, [visible]);
+
 
   // Live lookup: only when the local catalog has nothing, debounced so typing
   // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
@@ -294,10 +318,11 @@ function Library() {
       <section ref={resultsRef} className="mx-auto max-w-6xl px-6 py-8 scroll-mt-4">
         {!isLoading && !error && (
           <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Showing {results.length} of {drugs.length} drugs
+            Showing {visible.length} of {results.length} matching · {drugs.length} total
             {selectedClass && <> · {selectedClass}</>}
           </div>
         )}
+
         {isLoading ? (
           <div className="py-24 text-center text-muted-foreground">Loading drug library…</div>
         ) : error ? (
@@ -335,44 +360,70 @@ function Library() {
             )}
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {results.map((d) => (
-              <Link
-                key={d.slug}
-                to="/drug/$slug"
-                params={{ slug: d.slug }}
-                className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/60 hover:shadow-[var(--shadow-glow)]"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
-                        {d.drugClass}
+          <>
+            {groups.map((g) => (
+              <div key={g.key} className="mb-8">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 font-mono text-[11px] uppercase tracking-widest text-primary">
+                    {g.key}
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {g.items.length}
+                  </span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {g.items.map((d) => (
+                    <Link
+                      key={d.slug}
+                      to="/drug/$slug"
+                      params={{ slug: d.slug }}
+                      className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/60 hover:shadow-[var(--shadow-glow)]"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                              {d.drugClass}
+                            </div>
+                            <SourceBadge source={d.source} />
+                          </div>
+                          <div className="mt-1 text-lg font-semibold group-hover:text-primary">
+                            {d.name}
+                          </div>
+                          {d.brand && (
+                            <div className="text-xs text-muted-foreground">{d.brand}</div>
+                          )}
+                        </div>
+                        <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                          {d.route}
+                        </div>
                       </div>
-                      <SourceBadge source={d.source} />
-                    </div>
-                    <div className="mt-1 text-lg font-semibold group-hover:text-primary">
-                      {d.name}
-                    </div>
-                    {d.brand && (
-                      <div className="text-xs text-muted-foreground">{d.brand}</div>
-                    )}
-                  </div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {d.route}
-                  </div>
+                      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                        {d.indication}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                        <span>t½ {d.halfLifeHours}h</span>
+                        <span>{d.elimination}</span>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                  {d.indication}
-                </p>
-                <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                  <span>t½ {d.halfLifeHours}h</span>
-                  <span>{d.elimination}</span>
-                </div>
-              </Link>
+              </div>
             ))}
-          </div>
+            {visible.length < results.length && (
+              <div className="mt-2 flex justify-center">
+                <button
+                  onClick={() => setVisibleCount((n) => n + PAGE)}
+                  className="rounded-full border border-primary px-5 py-2 font-mono text-[10px] uppercase tracking-widest text-primary transition hover:bg-primary hover:text-primary-foreground"
+                >
+                  Show more · {results.length - visible.length} left
+                </button>
+              </div>
+            )}
+          </>
         )}
+
       </section>
 
       <footer className="border-t border-border">
