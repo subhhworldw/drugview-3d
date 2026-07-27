@@ -430,8 +430,18 @@ function Library() {
         <div className="mx-auto max-w-6xl px-6 py-8 text-center text-[11px] text-muted-foreground">
           <p>Drug-View · Educational tool · Not for clinical decision-making</p>
           <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Built by: Subham Samal (IMSC.Bi, BJB Autonomous College) 🧬
+            Built by:{" "}
+            <a
+              href="https://www.linkedin.com/in/subhh-worldw/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2 transition-colors hover:text-foreground"
+            >
+              Subham Samal ↗
+            </a>{" "}
+            (IMSC.Bi, BJB Autonomous College) 🧬
           </p>
+
         </div>
       </footer>
     </div>
