@@ -138,7 +138,7 @@ function Library() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [shouldLookup, q, runLookup, queryClient]);
+  }, [shouldLookup, q, runLookup, queryClient, navigate]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
