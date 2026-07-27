@@ -44,13 +44,35 @@ export function slugify(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
+const LABEL_HEADINGS = [
+  "indications and usage",
+  "dosage and administration",
+  "mechanism of action",
+  "pharmacokinetics",
+  "clinical pharmacology",
+  "absorption",
+  "distribution",
+  "metabolism",
+  "excretion",
+];
+
+function stripLabelHeading(text: string): string {
+  let out = text.replace(/^\s*\d+(\.\d+)*\s*/, "");
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const h of LABEL_HEADINGS) {
+      if (out.slice(0, h.length).toLowerCase() === h) {
+        out = out.slice(h.length).replace(/^[:\s-]+/, "").replace(/^\d+(\.\d+)*\s*/, "");
+        changed = true;
+      }
+    }
+  }
+  return out.trim();
+}
+
 function firstSentences(text: string, count = 2): string {
-  const clean = text
-    .replace(/\s+/g, " ")
-    // FDA label sections start with numbering + an ALL-CAPS/Title-Case heading.
-    .replace(/^\s*\d+(\.\d+)*\s+[A-Za-z][A-Za-z\s,&/-]{3,60}?(?=[A-Z][a-z]|:)/, "")
-    .replace(/^[:\s-]+/, "")
-    .trim();
+  const clean = stripLabelHeading(text.replace(/\s+/g, " ").trim());
   const parts = clean.split(/(?<=\.)\s+/).slice(0, count).join(" ");
   return (parts || clean).slice(0, 600);
 }
