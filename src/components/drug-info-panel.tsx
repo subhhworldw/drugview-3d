@@ -1,4 +1,5 @@
 import type { Drug } from "@/lib/drugs-data";
+import { SourceBadge } from "@/components/source-badge";
 
 interface Props {
   drug: Drug;
@@ -8,8 +9,11 @@ export function DrugInfoPanel({ drug }: Props) {
   return (
     <div className="flex h-full flex-col gap-6 overflow-y-auto p-6">
       <header>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
-          {drug.drugClass}
+        <div className="flex items-center gap-2">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
+            {drug.drugClass}
+          </div>
+          <SourceBadge source={drug.source} />
         </div>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">{drug.name}</h1>
         {drug.brand && (

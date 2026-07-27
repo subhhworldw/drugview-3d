@@ -149,8 +149,11 @@ function Library() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
-                      {d.drugClass}
+                    <div className="flex items-center gap-2">
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                        {d.drugClass}
+                      </div>
+                      <SourceBadge source={d.source} />
                     </div>
                     <div className="mt-1 text-lg font-semibold group-hover:text-primary">
                       {d.name}
