@@ -104,7 +104,7 @@ const themeInitScript = `(function(){try{var s=localStorage.getItem('theme');var
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <HeadContent />
