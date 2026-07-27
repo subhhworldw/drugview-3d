@@ -1,4 +1,4 @@
-// Drug catalog is stored in Lovable Cloud (public.drugs table).
+// Drug catalog is stored in the backend database (public.drugs table).
 // This module exposes the shared Drug type plus fetch helpers.
 // The 3D scene, info panel, and timeline components consume the Drug interface unchanged.
 import { supabase } from "@/integrations/supabase/client";
