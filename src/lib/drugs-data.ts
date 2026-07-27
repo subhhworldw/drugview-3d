@@ -43,6 +43,14 @@ export interface Drug {
   typicalDose: string;
   clinicalNotes: string[];
   sourceUrl?: string;
+  source: DrugSource;
+}
+
+export type DrugSource = "curated" | "api_cache";
+
+/** True when the row came from FDA data with an unconfident organ target. */
+export function isGenericTarget(drug: Drug): boolean {
+  return drug.source === "api_cache" && drug.targetOrgan === "vessels";
 }
 
 type DrugRow = Tables<"drugs">;
@@ -70,6 +78,7 @@ function rowToDrug(r: DrugRow): Drug {
     typicalDose: r.typical_dose,
     clinicalNotes: r.clinical_notes,
     sourceUrl: r.source_url ?? undefined,
+    source: (r.source === "api_cache" ? "api_cache" : "curated") as DrugSource,
   };
 }
 
