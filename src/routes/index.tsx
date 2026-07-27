@@ -208,12 +208,19 @@ function Library() {
             <form
               onSubmit={(e) => {
                 e.preventDefault();
+                if (suggestOpen && suggestions[activeIdx]) {
+                  const s = suggestions[activeIdx];
+                  setSuggestOpen(false);
+                  navigate({ to: "/drug/$slug", params: { slug: s.slug } });
+                  return;
+                }
+                setSuggestOpen(false);
                 scrollToResults();
               }}
               className="relative"
             >
               <svg
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                className="absolute left-3 top-[22px] -translate-y-1/2 text-muted-foreground"
                 width="16"
                 height="16"
                 viewBox="0 0 24 24"
@@ -228,14 +235,35 @@ function Library() {
                 autoFocus
                 value={q}
                 maxLength={80}
-                onChange={(e) => setQ(e.target.value.slice(0, 80))}
+                onChange={(e) => {
+                  setQ(e.target.value.slice(0, 80));
+                  setSuggestOpen(true);
+                  setActiveIdx(0);
+                }}
+                onFocus={() => setSuggestOpen(true)}
+                onBlur={() => window.setTimeout(() => setSuggestOpen(false), 120)}
+                onKeyDown={(e) => {
+                  if (!suggestOpen || suggestions.length === 0) return;
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setActiveIdx((i) => (i + 1) % suggestions.length);
+                  } else if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setActiveIdx((i) => (i - 1 + suggestions.length) % suggestions.length);
+                  } else if (e.key === "Escape") {
+                    setSuggestOpen(false);
+                  }
+                }}
+                role="combobox"
+                aria-expanded={suggestOpen && suggestions.length > 0}
+                aria-autocomplete="list"
                 placeholder="Search by name, brand, class or indication…"
                 className="w-full rounded-md border border-input bg-input/40 py-3 pl-10 pr-12 text-sm outline-none ring-primary/40 transition focus:border-primary focus:ring-2"
               />
               <button
                 type="submit"
                 aria-label="Jump to results"
-                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:bg-primary hover:text-primary-foreground"
+                className="absolute right-2 top-[22px] flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:bg-primary hover:text-primary-foreground"
               >
                 <svg
                   width="16"
@@ -249,8 +277,59 @@ function Library() {
                   <path d="m21 21-4.35-4.35" />
                 </svg>
               </button>
+
+              {/* Quick-access results box */}
+              {suggestOpen && q.trim().length > 0 && (
+                <div className="absolute left-0 right-0 top-[52px] z-30 overflow-hidden rounded-md border border-border bg-popover shadow-lg">
+                  {suggestions.length > 0 ? (
+                    <ul className="max-h-72 overflow-y-auto py-1">
+                      {suggestions.map((d, i) => (
+                        <li key={d.slug}>
+                          <button
+                            type="button"
+                            onMouseEnter={() => setActiveIdx(i)}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSuggestOpen(false);
+                              navigate({ to: "/drug/$slug", params: { slug: d.slug } });
+                            }}
+                            className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition ${
+                              i === activeIdx ? "bg-primary/10 text-foreground" : "text-foreground/90"
+                            }`}
+                          >
+                            <span className="min-w-0 truncate">{d.name}</span>
+                            <span className="shrink-0 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                              {d.drugClass}
+                            </span>
+                          </button>
+                        </li>
+                      ))}
+                      {textMatches.length > suggestions.length && (
+                        <li>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                              setSuggestOpen(false);
+                              scrollToResults();
+                            }}
+                            className="w-full px-3 py-2 text-left font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition hover:text-foreground"
+                          >
+                            See all {textMatches.length} matches ↓
+                          </button>
+                        </li>
+                      )}
+                    </ul>
+                  ) : (
+                    <p className="px-3 py-3 text-xs text-muted-foreground">
+                      {lookingUp ? "Looking this drug up…" : "No matches in the catalog yet."}
+                    </p>
+                  )}
+                </div>
+              )}
             </form>
           </div>
+
 
         </div>
       </section>
