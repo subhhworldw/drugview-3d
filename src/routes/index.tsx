@@ -153,8 +153,11 @@ function Library() {
               </p>
             </div>
           </div>
-          <div className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground md:block">
-            {drugs.length} drugs · {drugClasses.length} classes
+          <div className="flex items-center gap-3">
+            <div className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground md:block">
+              {drugs.length} drugs · {drugClasses.length} classes
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </header>
