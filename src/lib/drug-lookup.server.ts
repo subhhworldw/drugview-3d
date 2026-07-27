@@ -171,7 +171,7 @@ export function buildCachedDrugRow(
       ? firstSentences(label.dosage_and_administration[0], 1)
       : "See FDA label — dosing not available in structured data.",
     clinical_notes: notes,
-    source_url: `https://rxnav.nlm.nih.gov/REST/rxcui/${rx.rxcui}/allrelated.json`,
+    source_url: `https://dailymed.nlm.nih.gov/dailymed/search.cfm?labeltype=all&query=${encodeURIComponent(displayName)}`,
     source: "api_cache",
   };
 }
