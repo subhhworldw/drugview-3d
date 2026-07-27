@@ -280,7 +280,7 @@ function Library() {
       </section>
 
       {/* Grid */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
+      <section ref={resultsRef} className="mx-auto max-w-6xl px-6 py-8 scroll-mt-4">
         {!isLoading && !error && (
           <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Showing {results.length} of {drugs.length} drugs
