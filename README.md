@@ -134,7 +134,7 @@ information and clinical judgement for patient care.
 
 ## Credits
 
-Built by **Subham Samal** (IMSC.Bi, BJB Autonomous College) 🧬
+Built by **[Subham Samal](https://www.linkedin.com/in/subhh-worldw/)** (IMSC.Bi, BJB Autonomous College) 🧬
 
 ## License
 
