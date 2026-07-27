@@ -58,18 +58,21 @@ const G = {
 
 // A stylized human body composed from procedural geometry + highlighted organs.
 function Body({ activeOrgan }: { activeOrgan: string }) {
+  const isDark = useIsDark();
   const bodyMat = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
         color: new THREE.Color("#4a7a8c"),
+        emissive: new THREE.Color(isDark ? "#1d4152" : "#000000"),
+        emissiveIntensity: isDark ? 1 : 0,
         transparent: true,
-        opacity: 0.14,
+        opacity: isDark ? 0.22 : 0.14,
         roughness: 0.4,
         transmission: 0.6,
         thickness: 0.8,
         side: THREE.DoubleSide,
       }),
-    [],
+    [isDark],
   );
 
   return (
