@@ -408,6 +408,27 @@ function Scene({ drug, time }: { drug: Drug; time: number }) {
   );
 }
 
+/**
+ * Keeps the whole figure in frame: pulls the camera back when the canvas is
+ * short or narrow so the model never overflows the viewport.
+ */
+function CameraFit() {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const cam = camera as THREE.PerspectiveCamera;
+    const figureHeight = 8.2;
+    const figureWidth = 3.2;
+    const vFov = (cam.fov * Math.PI) / 180;
+    const distV = figureHeight / 2 / Math.tan(vFov / 2);
+    const aspect = size.width / size.height;
+    const distH = figureWidth / 2 / Math.tan(vFov / 2) / Math.max(aspect, 0.001);
+    const dist = Math.max(distV, distH) * 1.05;
+    cam.position.set(0, 0.9, dist);
+    cam.updateProjectionMatrix();
+  }, [camera, size.width, size.height]);
+  return null;
+}
+
 function Ticker({
   playing,
   onTick,
@@ -426,6 +447,7 @@ function Ticker({
   });
   return null;
 }
+
 
 function useIsDark() {
   const [isDark, setIsDark] = useState(true);
