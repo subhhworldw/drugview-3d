@@ -194,9 +194,8 @@ function Organ({
         color: new THREE.Color(active ? "#f7b955" : "#5aa0b8"),
         emissive: new THREE.Color(active ? "#f7b955" : "#2f6d80"),
         emissiveIntensity: active ? 0.9 : 0.18,
-        roughness: 0.3,
-        transparent: true,
-        opacity: active ? 1 : 0.8,
+        roughness: 0.35,
+        metalness: 0.05,
       }),
     [active],
   );
