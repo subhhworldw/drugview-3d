@@ -1,5 +1,6 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "drug-view",
+  "description": "Drug-View — 3D pharmacology visualizer showing how drugs move through the body.",
   "private": true,
   "sideEffects": false,
   "type": "module",
