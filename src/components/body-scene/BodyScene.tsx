@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 import type { Drug } from "@/lib/drugs-data";
@@ -408,6 +408,27 @@ function Scene({ drug, time }: { drug: Drug; time: number }) {
   );
 }
 
+/**
+ * Keeps the whole figure in frame: pulls the camera back when the canvas is
+ * short or narrow so the model never overflows the viewport.
+ */
+function CameraFit() {
+  const { camera, size } = useThree();
+  useEffect(() => {
+    const cam = camera as THREE.PerspectiveCamera;
+    const figureHeight = 8.2;
+    const figureWidth = 3.2;
+    const vFov = (cam.fov * Math.PI) / 180;
+    const distV = figureHeight / 2 / Math.tan(vFov / 2);
+    const aspect = size.width / size.height;
+    const distH = figureWidth / 2 / Math.tan(vFov / 2) / Math.max(aspect, 0.001);
+    const dist = Math.max(distV, distH) * 1.05;
+    cam.position.set(0, 0.9, dist);
+    cam.updateProjectionMatrix();
+  }, [camera, size.width, size.height]);
+  return null;
+}
+
 function Ticker({
   playing,
   onTick,
@@ -426,6 +447,7 @@ function Ticker({
   });
   return null;
 }
+
 
 function useIsDark() {
   const [isDark, setIsDark] = useState(true);
@@ -453,20 +475,22 @@ export function BodyScene({ drug, time, playing, onTimeChange }: Props) {
   }, [drug.slug]);
 
   return (
-    <Canvas camera={{ position: [0, 1.0, 9], fov: 45 }} dpr={[1, 2]}>
+    <Canvas camera={{ position: [0, 0.9, 11], fov: 45 }} dpr={[1, 2]}>
       <color attach="background" args={[bg]} />
-      <fog attach="fog" args={[bg, 10, 22]} />
+      <fog attach="fog" args={[bg, 12, 26]} />
 
+      <CameraFit />
       <Scene drug={drug} time={time} />
       <Ticker playing={playing} onTick={onTimeChange} duration={duration} time={time} />
       <OrbitControls
         enablePan={false}
         minDistance={5}
-        maxDistance={16}
-        target={[0, 0.8, 0]}
+        maxDistance={20}
+        target={[0, 0.6, 0]}
         autoRotate={!playing}
         autoRotateSpeed={0.5}
       />
+
     </Canvas>
   );
 }

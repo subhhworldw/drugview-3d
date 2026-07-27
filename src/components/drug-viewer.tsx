@@ -11,7 +11,7 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
   const [playing, setPlaying] = useState(true);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:min-h-0 lg:overflow-hidden">
       <header className="flex items-center justify-between border-b border-border px-6 py-3">
         <Link
           to="/"
@@ -33,9 +33,9 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col lg:flex-row">
+      <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
         <div className="relative flex min-h-[60vh] flex-1 flex-col lg:min-h-0">
-          <div className="flex-1" style={{ background: "var(--gradient-body)" }}>
+          <div className="min-h-0 flex-1" style={{ background: "var(--gradient-body)" }}>
             <BodySceneClient
               drug={drug}
               time={time}
@@ -55,10 +55,11 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
           />
         </div>
 
-        <aside className="w-full border-t border-border bg-card/40 lg:w-[380px] lg:border-l lg:border-t-0">
+        <aside className="w-full border-t border-border bg-card/40 lg:h-full lg:w-[380px] lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
           <DrugInfoPanel drug={drug} />
         </aside>
       </div>
+
     </div>
   );
 }
