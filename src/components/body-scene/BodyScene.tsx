@@ -45,11 +45,11 @@ const G = {
   intestine: makeIntestineGeometry(),
   brain: makeBrainGeometry(),
   bone: makeBoneGeometry(0.85),
-  muscle: makeMuscleGeometry(0.8),
+  muscle: makeMuscleGeometry(0.7),
   pancreas: makeBlobGeometry(2.0, 0.55, 0.7),
   thyroid: makeBlobGeometry(1.1, 0.6, 0.7),
   joint: makeBlobGeometry(1.1, 1.0, 1.1),
-  skin: makeBlobGeometry(1.6, 1.6, 0.25),
+  skin: makeBlobGeometry(1.1, 1.4, 0.2),
   vessel: makeBlobGeometry(0.5, 3.0, 0.5),
   node: makeBlobGeometry(0.42, 0.5, 0.42),
 };
@@ -125,8 +125,8 @@ function OrganShape({ organ, material }: { organ: string; material: THREE.Materi
     case "lungs":
       return (
         <>
-          <mesh position={[-0.3, 0.05, 0]} geometry={G.lungL} material={material} />
-          <mesh position={[0.3, 0.05, 0]} geometry={G.lungR} material={material} />
+          <mesh position={[-0.36, 0.05, 0]} geometry={G.lungL} material={material} />
+          <mesh position={[0.36, 0.05, 0]} geometry={G.lungR} material={material} />
         </>
       );
     case "liver":

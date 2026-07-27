@@ -89,7 +89,7 @@ export function makeHeartGeometry() {
     v.y *= cleft;
     pos.setXYZ(i, v.x, v.y, v.z);
   }
-  geo.scale(1.05, 1.35, 1.0);
+  geo.scale(1.25, 1.5, 1.15);
   geo.rotateZ(0.28);
   geo.computeVertexNormals();
   return geo;
@@ -116,29 +116,28 @@ export function makeLungGeometry(side: 1 | -1) {
   return geo;
 }
 
-/** Liver: large asymmetric wedge with a bevelled edge. */
+/** Liver: large asymmetric wedge, thick on the right, tapering to a thin left lobe. */
 export function makeLiverGeometry() {
   const shape = new THREE.Shape();
-  shape.moveTo(-0.34, 0.1);
-  shape.bezierCurveTo(-0.1, 0.24, 0.2, 0.22, 0.36, 0.06);
-  shape.bezierCurveTo(0.4, -0.06, 0.26, -0.18, 0.05, -0.2);
-  shape.bezierCurveTo(-0.12, -0.21, -0.28, -0.1, -0.34, 0.1);
+  shape.moveTo(-0.36, 0.04);
+  shape.bezierCurveTo(-0.14, 0.2, 0.16, 0.2, 0.32, 0.04);
+  shape.bezierCurveTo(0.4, -0.08, 0.24, -0.2, 0.02, -0.2);
+  shape.bezierCurveTo(-0.16, -0.19, -0.3, -0.08, -0.36, 0.04);
   const geo = new THREE.ExtrudeGeometry(shape, {
-    depth: 0.2,
+    depth: 0.16,
     bevelEnabled: true,
-    bevelSize: 0.05,
-    bevelThickness: 0.05,
+    bevelSize: 0.04,
+    bevelThickness: 0.04,
     bevelSegments: 2,
-    curveSegments: 8,
+    curveSegments: 10,
   });
-  geo.translate(0, 0, -0.15);
-  // wedge: thin the left tip
+  geo.translate(0, 0, -0.12);
+  // wedge: thin the left lobe
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i);
-    const k = THREE.MathUtils.mapLinear(x, -0.34, 0.36, 0.45, 1.0);
+    const k = THREE.MathUtils.clamp(THREE.MathUtils.mapLinear(x, -0.36, 0.32, 0.4, 1.0), 0.4, 1);
     pos.setZ(i, pos.getZ(i) * k);
-    pos.setY(i, pos.getY(i) * (0.7 + 0.3 * k));
   }
   geo.computeVertexNormals();
   return geo;
@@ -174,15 +173,22 @@ export function makeStomachGeometry() {
   return geo;
 }
 
-/** Kidney: bean — a thick tube swept along a short arc. */
+/** Kidney: bean — ellipsoid with an indented hilum on the medial side. */
 export function makeKidneyGeometry(side: 1 | -1) {
-  const curve = new THREE.CatmullRomCurve3([
-    new THREE.Vector3(side * 0.02, 0.13, 0),
-    new THREE.Vector3(side * 0.07, 0.0, 0),
-    new THREE.Vector3(side * 0.02, -0.13, 0),
-  ]);
-  const geo = new THREE.TubeGeometry(curve, 16, 0.085, 12, false);
-  geo.scale(1, 1, 0.8);
+  const geo = new THREE.SphereGeometry(0.11, 18, 14);
+  geo.scale(0.72, 1.35, 0.68);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    // concave notch on the medial face, strongest at mid-height
+    if (v.x * side < 0) {
+      const notch = Math.max(0, 1 - Math.abs(v.y) / 0.06);
+      v.x *= 1 - 0.75 * notch;
+    }
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.computeVertexNormals();
   return geo;
 }
 
@@ -195,7 +201,7 @@ export function makeIntestineGeometry() {
     const t = i / steps;
     const a = t * Math.PI * 2 * turns;
     const r = 0.3 - 0.19 * t;
-    pts.push(new THREE.Vector3(Math.cos(a) * r, -0.22 + t * 0.42, Math.sin(a) * r * 0.7));
+    pts.push(new THREE.Vector3(Math.cos(a) * r, -0.16 + t * 0.3, Math.sin(a) * r * 0.85));
   }
   const curve = new THREE.CatmullRomCurve3(pts);
   return new THREE.TubeGeometry(curve, 120, 0.055, 7, false);
@@ -203,7 +209,7 @@ export function makeIntestineGeometry() {
 
 /** Brain: ellipsoid with a central sulcus and a cerebellum bump. */
 export function makeBrainGeometry() {
-  const geo = new THREE.SphereGeometry(0.3, 22, 18);
+  const geo = new THREE.SphereGeometry(0.24, 22, 18);
   geo.scale(0.85, 0.86, 1.05);
   const pos = geo.attributes.position;
   const v = new THREE.Vector3();
