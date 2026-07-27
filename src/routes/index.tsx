@@ -79,6 +79,11 @@ function Library() {
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
   const attempted = useRef<Set<string>>(new Set());
+  const resultsRef = useRef<HTMLElement | null>(null);
+
+  const scrollToResults = () => {
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   // A class filter hiding otherwise-valid matches is a filter problem, not a
   // missing-drug problem — surface it instead of hitting the external APIs.
@@ -111,6 +116,7 @@ function Library() {
         if (cancelled) return;
         if (res.status === "ok") {
           await queryClient.invalidateQueries({ queryKey: ["drugs"] });
+          if (!cancelled) requestAnimationFrame(scrollToResults);
         } else {
           setLookupMessage(res.message ?? "No structured data available for this drug.");
         }
