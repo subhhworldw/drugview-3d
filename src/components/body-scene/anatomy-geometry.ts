@@ -72,26 +72,27 @@ export function makeLimbGeometry(topR: number, midR: number, botR: number, lengt
   return geo;
 }
 
-/** Heart: two rounded lobes merged with a tapered apex. */
-export function makeHeartGeometry() {
-  const geo = new THREE.SphereGeometry(0.16, 18, 16);
-  const pos = geo.attributes.position;
-  const v = new THREE.Vector3();
-  for (let i = 0; i < pos.count; i++) {
-    v.fromBufferAttribute(pos, i);
-    const t = (v.y + 0.16) / 0.32; // 0 bottom → 1 top
-    // taper into an apex at the bottom
-    const taper = 0.35 + 0.9 * Math.pow(t, 0.7);
-    // cleft between the two upper lobes
-    const cleft = t > 0.72 ? 1 - 0.45 * Math.cos((v.x / 0.16) * Math.PI * 0.5) * (t - 0.72) * 4 : 1;
-    v.x *= taper * 1.05;
-    v.z *= taper * 0.95;
-    v.y *= cleft;
-    pos.setXYZ(i, v.x, v.y, v.z);
-  }
-  geo.scale(1.25, 1.5, 1.15);
-  geo.rotateZ(0.28);
-  geo.computeVertexNormals();
+/** Heart lobe: one of the two rounded upper chambers. */
+export function makeHeartLobeGeometry() {
+  const geo = new THREE.SphereGeometry(0.115, 16, 14);
+  geo.scale(1, 0.95, 0.85);
+  return geo;
+}
+
+/** Heart apex: tapered cone forming the pointed lower tip. */
+export function makeHeartApexGeometry() {
+  const raw: Array<[number, number]> = [
+    [0.001, -0.19],
+    [0.06, -0.13],
+    [0.13, -0.02],
+    [0.165, 0.06],
+    [0.15, 0.12],
+    [0.001, 0.14],
+  ];
+  const curve = new THREE.SplineCurve(raw.map(([r, h]) => v2(r, h)));
+  const pts = curve.getPoints(16).map((p) => v2(Math.max(p.x, 0.001), p.y));
+  const geo = new THREE.LatheGeometry(pts, 18);
+  geo.scale(1, 1, 0.88);
   return geo;
 }
 

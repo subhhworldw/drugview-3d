@@ -9,7 +9,8 @@ import {
   makeTorsoGeometry,
   makeHeadGeometry,
   makeLimbGeometry,
-  makeHeartGeometry,
+  makeHeartLobeGeometry,
+  makeHeartApexGeometry,
   makeLungGeometry,
   makeLiverGeometry,
   makeStomachGeometry,
@@ -35,7 +36,8 @@ const G = {
   arm: makeLimbGeometry(0.16, 0.12, 0.085, 1.95),
   leg: makeLimbGeometry(0.26, 0.18, 0.11, 2.1),
   hips: makeBlobGeometry(5.2, 3.0, 3.0),
-  heart: makeHeartGeometry(),
+  heartLobe: makeHeartLobeGeometry(),
+  heartApex: makeHeartApexGeometry(),
   lungL: makeLungGeometry(-1),
   lungR: makeLungGeometry(1),
   liver: makeLiverGeometry(),
@@ -121,7 +123,13 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
 function OrganShape({ organ, material }: { organ: string; material: THREE.Material }) {
   switch (organ) {
     case "heart":
-      return <mesh geometry={G.heart} material={material} />;
+      return (
+        <group rotation={[0, 0, 0.3]}>
+          <mesh position={[-0.085, 0.085, 0]} geometry={G.heartLobe} material={material} />
+          <mesh position={[0.085, 0.085, 0]} geometry={G.heartLobe} material={material} />
+          <mesh position={[0, -0.02, 0]} geometry={G.heartApex} material={material} />
+        </group>
+      );
     case "lungs":
       return (
         <>
