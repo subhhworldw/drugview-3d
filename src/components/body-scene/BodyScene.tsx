@@ -125,8 +125,8 @@ function OrganShape({ organ, material }: { organ: string; material: THREE.Materi
     case "lungs":
       return (
         <>
-          <mesh position={[-0.36, 0.05, 0]} geometry={G.lungL} material={material} />
-          <mesh position={[0.36, 0.05, 0]} geometry={G.lungR} material={material} />
+          <mesh position={[-0.42, 0.05, -0.04]} geometry={G.lungL} material={material} />
+          <mesh position={[0.42, 0.05, -0.04]} geometry={G.lungR} material={material} />
         </>
       );
     case "liver":

@@ -139,6 +139,7 @@ export function makeLiverGeometry() {
     const k = THREE.MathUtils.clamp(THREE.MathUtils.mapLinear(x, -0.36, 0.32, 0.4, 1.0), 0.4, 1);
     pos.setZ(i, pos.getZ(i) * k);
   }
+  geo.scale(0.82, 0.82, 0.82);
   geo.computeVertexNormals();
   return geo;
 }

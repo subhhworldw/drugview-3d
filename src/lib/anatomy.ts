@@ -4,7 +4,7 @@ import type { Organ } from "./drugs-data";
 // Coordinate system: x = left-right, y = up-down, z = front-back
 export const ORGAN_POSITIONS: Record<Organ | "outside", [number, number, number]> = {
   brain: [0, 3.2, 0],
-  heart: [-0.25, 1.4, 0.15],
+  heart: [-0.22, 1.35, 0.2],
   lungs: [0, 1.5, 0],
   liver: [0.5, 0.6, 0.1],
   kidney: [0, 0.2, -0.3],
@@ -14,7 +14,7 @@ export const ORGAN_POSITIONS: Record<Organ | "outside", [number, number, number]
   vessels: [0, 1.0, 0],
   pancreas: [-0.1, 0.45, 0],
   thyroid: [0, 2.4, 0.2],
-  skin: [0.62, 0.9, 0.3],
+  skin: [0.68, 1.5, 0.26],
   bone: [-0.34, -1.55, 0],
   bone_marrow: [-0.34, -1.55, 0.02],
   muscle: [-0.92, 1.0, 0],
