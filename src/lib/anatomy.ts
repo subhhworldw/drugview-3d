@@ -4,21 +4,21 @@ import type { Organ } from "./drugs-data";
 // Coordinate system: x = left-right, y = up-down, z = front-back
 export const ORGAN_POSITIONS: Record<Organ | "outside", [number, number, number]> = {
   brain: [0, 3.2, 0],
-  heart: [-0.25, 1.4, 0.15],
+  heart: [-0.22, 1.35, 0.2],
   lungs: [0, 1.5, 0],
   liver: [0.5, 0.6, 0.1],
   kidney: [0, 0.2, -0.3],
   stomach: [-0.15, 0.75, 0.15],
   small_intestine: [0, 0.0, 0.15],
-  joints: [1.1, -0.9, 0],
+  joints: [0.34, -0.55, 0],
   vessels: [0, 1.0, 0],
   pancreas: [-0.1, 0.45, 0],
   thyroid: [0, 2.4, 0.2],
-  skin: [0.9, 0.5, 0.35],
-  bone: [-1.0, -1.0, 0],
-  bone_marrow: [-1.0, -1.05, 0.05],
-  muscle: [-1.15, 0.6, 0.1],
-  lymph_node: [0.35, 1.9, 0.1],
+  skin: [0.68, 1.5, 0.26],
+  bone: [-0.34, -1.55, 0],
+  bone_marrow: [-0.34, -1.55, 0.02],
+  muscle: [-0.92, 1.0, 0],
+  lymph_node: [0.45, 1.75, 0.05],
   outside: [0, 4.5, 1.5],
 };
 
