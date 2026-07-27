@@ -53,10 +53,10 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
       )}
 
       <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
-        <div className="relative flex min-h-[60vh] flex-1 flex-col lg:min-h-0">
+        <div className="relative flex flex-1 flex-col lg:min-h-0">
           <div
             ref={sceneRef}
-            className="relative min-h-0 flex-1"
+            className="relative h-[42vh] min-h-[260px] flex-none lg:h-auto lg:min-h-0 lg:flex-1"
             style={{ background: "var(--gradient-body)" }}
           >
             <BodySceneClient
