@@ -115,12 +115,16 @@ function Library() {
       try {
         const res = await runLookup({ data: { term } });
         if (cancelled) return;
-        if (res.status === "ok") {
+        if (res.status === "ok" && "slug" in res && res.slug) {
           await queryClient.invalidateQueries({ queryKey: ["drugs"] });
           if (!cancelled) requestAnimationFrame(scrollToResults);
+        } else if (res.status === "ok") {
+          // Live FDA result — rendered ephemerally, never stored.
+          navigate({ to: "/live/$term", params: { term } });
         } else {
           setLookupMessage(res.message ?? "No structured data available for this drug.");
         }
+
       } catch {
         if (!cancelled) setLookupMessage("Live lookup is unavailable right now.");
       } finally {
