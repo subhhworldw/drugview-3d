@@ -59,7 +59,36 @@ const G = {
   skin: makeBlobGeometry(1.1, 1.4, 0.2),
   vessel: makeBlobGeometry(0.5, 3.0, 0.5),
   node: makeBlobGeometry(0.42, 0.5, 0.42),
+  pec: makePanelGeometry(0.42, 0.3),
+  abPanel: makePanelGeometry(0.16, 0.13),
+  obliquePanel: makePanelGeometry(0.13, 0.26),
+  deltoid: makeDeltoidGeometry(0.21),
+  biceps: makeBulgeGeometry(0.62, 0.1),
+  forearm: makeBulgeGeometry(0.5, 0.075),
+  quad: makeBulgeGeometry(0.95, 0.14),
+  calf: makeBulgeGeometry(0.6, 0.1),
+  midline: makeMidlineGeometry(1.5),
 };
+
+/** Base colour per organ so layers stay visually distinct, chart-style. */
+const ORGAN_COLORS: Record<string, string> = {
+  heart: "#d05a55",
+  lungs: "#dd8a95",
+  liver: "#a86a45",
+  stomach: "#cf9a4e",
+  kidney: "#9a6a92",
+  small_intestine: "#d1a068",
+  brain: "#c2a0c0",
+  bone: "#ded7c2",
+  bone_marrow: "#e0b7a0",
+  muscle: "#c05a5a",
+  lymph_node: "#6fbfa0",
+  pancreas: "#cfc06a",
+  thyroid: "#6fb0c8",
+  vessels: "#cc5148",
+  skin: "#d8a98c",
+};
+
 
 // A stylized human body composed from procedural geometry + highlighted organs.
 function Body({ activeOrgan }: { activeOrgan: string }) {
