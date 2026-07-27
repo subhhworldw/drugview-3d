@@ -29,9 +29,9 @@ export function PhaseTimeline({ drug, time, playing, onTogglePlay, onSeek }: Pro
 
   return (
     <div className="border-t border-border bg-card/60 backdrop-blur">
-      <div className="px-6 py-4">
+      <div className="px-4 py-3 sm:px-6 sm:py-4">
         {/* Controls row */}
-        <div className="mb-3 flex items-center gap-4">
+        <div className="mb-3 flex flex-wrap items-center gap-x-4 gap-y-2">
           <button
             onClick={onTogglePlay}
             className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:brightness-110"
@@ -55,9 +55,9 @@ export function PhaseTimeline({ drug, time, playing, onTogglePlay, onSeek }: Pro
             Restart
           </button>
           <div className="flex-1" />
-          <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+          <div className="min-w-0 font-mono text-[10px] uppercase tracking-widest text-muted-foreground sm:text-[11px]">
             <span className="text-primary">{current.label}</span>
-            <span className="mx-3 text-border">|</span>
+            <span className="mx-2 text-border sm:mx-3">|</span>
             <span>
               t = {time.toFixed(1)}s / {duration.toFixed(1)}s
             </span>
@@ -78,16 +78,16 @@ export function PhaseTimeline({ drug, time, playing, onTogglePlay, onSeek }: Pro
               <button
                 key={p.id}
                 onClick={() => onSeek(phaseStarts[i])}
-                className="group relative flex-1 overflow-hidden rounded-sm bg-muted/60 text-left transition hover:bg-muted"
+                className="group relative min-w-0 flex-1 overflow-hidden rounded-sm bg-muted/60 text-left transition hover:bg-muted"
                 style={{ flexGrow: p.duration }}
               >
                 <div
                   className="absolute inset-y-0 left-0 bg-primary/80 transition-all"
                   style={{ width: `${localProgress * 100}%` }}
                 />
-                <div className="relative px-2 py-2">
+                <div className="relative px-1 py-2 sm:px-2">
                   <div
-                    className={`font-mono text-[10px] uppercase tracking-widest ${
+                    className={`truncate font-mono text-[8px] uppercase tracking-widest sm:text-[10px] ${
                       isActive ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"
                     }`}
                   >
@@ -99,7 +99,7 @@ export function PhaseTimeline({ drug, time, playing, onTogglePlay, onSeek }: Pro
           })}
         </div>
 
-        <p className="mt-3 text-sm text-muted-foreground">{current.description}</p>
+        <p className="mt-3 text-xs text-muted-foreground sm:text-sm">{current.description}</p>
       </div>
     </div>
   );
