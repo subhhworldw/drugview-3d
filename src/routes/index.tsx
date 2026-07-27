@@ -203,7 +203,8 @@ function Library() {
               <input
                 autoFocus
                 value={q}
-                onChange={(e) => setQ(e.target.value)}
+                maxLength={80}
+                onChange={(e) => setQ(e.target.value.slice(0, 80))}
                 placeholder="Search by name, brand, class or indication…"
                 className="w-full rounded-md border border-input bg-input/40 py-3 pl-10 pr-12 text-sm outline-none ring-primary/40 transition focus:border-primary focus:ring-2"
               />

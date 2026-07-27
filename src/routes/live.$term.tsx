@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { lookupDrug } from "@/lib/drug-lookup.functions";
 import { rowToDrug, type DrugRowLike } from "@/lib/drugs-data";
 import { DrugViewer } from "@/components/drug-viewer";
@@ -7,15 +7,18 @@ import { DrugViewer } from "@/components/drug-viewer";
 // Nothing here is written to the database.
 export const Route = createFileRoute("/live/$term")({
   loader: async ({ params }) => {
-    const res = await lookupDrug({ data: { term: params.term } });
+    const term = params.term.slice(0, 80);
+    const res = await lookupDrug({ data: { term } });
     if (res.status === "ok" && "drug" in res && res.drug) {
       return { drug: rowToDrug(res.drug as DrugRowLike), message: null as string | null };
     }
-    if (res.status === "ok" && "slug" in res) {
-      return { drug: null, message: null as string | null, slug: res.slug };
+    if (res.status === "ok" && "slug" in res && res.slug) {
+      // Already in the catalog — send the user to the real detail page.
+      throw redirect({ to: "/drug/$slug", params: { slug: res.slug } });
     }
     return { drug: null, message: res.message ?? "No data available for this drug." };
   },
+
   head: ({ loaderData, params }) => {
     const name = loaderData?.drug?.name ?? params.term;
     const title = `${name} in 3D — live FDA lookup · Drug-View`;

@@ -77,14 +77,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Drug-View — 3D drug pharmacology visualizer" },
+      {
+        name: "description",
+        content:
+          "Interactive 3D visualization of how drugs move through the body: absorption, distribution, receptor binding, metabolism and elimination.",
+      },
+      { name: "author", content: "Subham Samal" },
+      { property: "og:title", content: "Drug-View — 3D drug pharmacology visualizer" },
+      {
+        property: "og:description",
+        content: "Watch each drug animate through the body in 3D.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
