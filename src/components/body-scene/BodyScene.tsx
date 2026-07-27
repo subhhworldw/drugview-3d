@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
@@ -207,9 +207,24 @@ function Ticker({
   return null;
 }
 
+function useIsDark() {
+  const [isDark, setIsDark] = useState(true);
+  useEffect(() => {
+    const el = document.documentElement;
+    const read = () => setIsDark(el.classList.contains("dark"));
+    read();
+    const obs = new MutationObserver(read);
+    obs.observe(el, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+  return isDark;
+}
+
 export function BodyScene({ drug, time, playing, onTimeChange }: Props) {
   const phases = useMemo(() => buildPhases(drug), [drug]);
   const duration = totalDuration(phases);
+  const isDark = useIsDark();
+  const bg = isDark ? "#0e1a24" : "#e8eef2";
 
   // Reset time when drug changes
   useEffect(() => {
@@ -219,8 +234,9 @@ export function BodyScene({ drug, time, playing, onTimeChange }: Props) {
 
   return (
     <Canvas camera={{ position: [0, 1.2, 7], fov: 45 }} dpr={[1, 2]}>
-      <color attach="background" args={["#0e1a24"]} />
-      <fog attach="fog" args={["#0e1a24", 8, 18]} />
+      <color attach="background" args={[bg]} />
+      <fog attach="fog" args={[bg, 8, 18]} />
+
       <Scene drug={drug} time={time} />
       <Ticker playing={playing} onTick={onTimeChange} duration={duration} time={time} />
       <OrbitControls
