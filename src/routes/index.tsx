@@ -5,6 +5,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { fetchAllDrugs, filterDrugs, uniqueDrugClasses } from "@/lib/drugs-data";
 import { lookupDrug } from "@/lib/drug-lookup.functions";
 import { SourceBadge } from "@/components/source-badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,11 +50,27 @@ function Library() {
 
   const drugClasses = useMemo(() => uniqueDrugClasses(drugs), [drugs]);
 
-  const results = useMemo(() => {
-    let out = filterDrugs(drugs, q);
-    if (selectedClass) out = out.filter((d) => d.drugClass === selectedClass);
-    return out;
-  }, [drugs, q, selectedClass]);
+  // Most-used classes first, so the pill row stays short.
+  const topClasses = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of drugs) counts.set(d.drugClass, (counts.get(d.drugClass) ?? 0) + 1);
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 8)
+      .map(([c]) => c);
+  }, [drugs]);
+
+  const moreClasses = useMemo(
+    () => drugClasses.filter((c) => !topClasses.includes(c)),
+    [drugClasses, topClasses],
+  );
+  const [classMenuOpen, setClassMenuOpen] = useState(false);
+
+  const textMatches = useMemo(() => filterDrugs(drugs, q), [drugs, q]);
+  const results = useMemo(
+    () => (selectedClass ? textMatches.filter((d) => d.drugClass === selectedClass) : textMatches),
+    [textMatches, selectedClass],
+  );
 
   // Live lookup: only when the local catalog has nothing, debounced so typing
   // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
@@ -54,8 +80,18 @@ function Library() {
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
   const attempted = useRef<Set<string>>(new Set());
 
+  // A class filter hiding otherwise-valid matches is a filter problem, not a
+  // missing-drug problem — surface it instead of hitting the external APIs.
+  const filteredOutByClass = Boolean(selectedClass) && results.length === 0 && textMatches.length > 0;
+
   const shouldLookup =
-    !isLoading && !error && !selectedClass && q.trim().length >= 3 && results.length === 0;
+    !isLoading &&
+    !error &&
+    !filteredOutByClass &&
+    q.trim().length >= 3 &&
+    results.length === 0 &&
+    textMatches.length === 0;
+
 
   useEffect(() => {
     if (!shouldLookup) {
@@ -157,11 +193,11 @@ function Library() {
       {/* Filters */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FilterChip active={!selectedClass} onClick={() => setSelectedClass(null)}>
               All classes
             </FilterChip>
-            {drugClasses.map((c) => (
+            {topClasses.map((c) => (
               <FilterChip
                 key={c}
                 active={selectedClass === c}
@@ -170,12 +206,57 @@ function Library() {
                 {c}
               </FilterChip>
             ))}
+            {selectedClass && !topClasses.includes(selectedClass) && (
+              <FilterChip active onClick={() => setSelectedClass(null)}>
+                {selectedClass}
+              </FilterChip>
+            )}
+            {moreClasses.length > 0 && (
+              <Popover open={classMenuOpen} onOpenChange={setClassMenuOpen}>
+                <PopoverTrigger asChild>
+                  <button className="rounded-full border border-border px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition hover:border-primary/40 hover:text-foreground">
+                    More classes ▾
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-72 p-0">
+                  <Command>
+                    <CommandInput placeholder="Search classes…" className="text-xs" />
+                    <CommandList>
+                      <CommandEmpty className="py-6 text-center text-xs text-muted-foreground">
+                        No classes found.
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {moreClasses.map((c) => (
+                          <CommandItem
+                            key={c}
+                            value={c}
+                            onSelect={() => {
+                              setSelectedClass(c === selectedClass ? null : c);
+                              setClassMenuOpen(false);
+                            }}
+                            className="font-mono text-[10px] uppercase tracking-widest"
+                          >
+                            {c}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
       </section>
 
       {/* Grid */}
       <section className="mx-auto max-w-6xl px-6 py-8">
+        {!isLoading && !error && (
+          <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Showing {results.length} of {drugs.length} drugs
+            {selectedClass && <> · {selectedClass}</>}
+          </div>
+        )}
         {isLoading ? (
           <div className="py-24 text-center text-muted-foreground">Loading drug library…</div>
         ) : error ? (
@@ -184,7 +265,19 @@ function Library() {
           </div>
         ) : results.length === 0 ? (
           <div className="py-24 text-center text-muted-foreground">
-            {lookingUp ? (
+            {filteredOutByClass ? (
+              <>
+                <p className="text-sm">
+                  No drugs in &ldquo;{selectedClass}&rdquo; match &ldquo;{q}&rdquo;.
+                </p>
+                <button
+                  onClick={() => setSelectedClass(null)}
+                  className="mt-3 rounded-full border border-primary px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-primary transition hover:bg-primary hover:text-primary-foreground"
+                >
+                  Clear class filter
+                </button>
+              </>
+            ) : lookingUp ? (
               <>
                 <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
                   Searching FDA &amp; RxNorm…
@@ -197,6 +290,7 @@ function Library() {
               <p className="text-sm">{lookupMessage}</p>
             ) : (
               <>No drugs match &ldquo;{q}&rdquo;.</>
+
             )}
           </div>
         ) : (
