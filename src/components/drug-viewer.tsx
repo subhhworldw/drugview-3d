@@ -31,15 +31,15 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:min-h-0 lg:overflow-hidden">
-      <header className="flex items-center justify-between border-b border-border px-6 py-3">
+      <header className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-border px-4 py-3 sm:flex sm:justify-between sm:px-6">
         <Link
           to="/"
-          className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
+          className="truncate font-mono text-[11px] uppercase tracking-widest text-muted-foreground hover:text-foreground"
         >
           ← Drug-View library
         </Link>
-        <div className="flex items-center gap-3">
-          <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-3">
+          <div className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground sm:block">
             {drug.name}
           </div>
           <ThemeToggle />
@@ -53,10 +53,10 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
       )}
 
       <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
-        <div className="relative flex min-h-[60vh] flex-1 flex-col lg:min-h-0">
+        <div className="relative flex flex-1 flex-col lg:min-h-0">
           <div
             ref={sceneRef}
-            className="relative min-h-0 flex-1"
+            className={`relative ${isFullscreen ? "h-full w-full" : "h-[42vh] min-h-[260px] flex-none lg:h-auto lg:min-h-0 lg:flex-1"}`}
             style={{ background: "var(--gradient-body)" }}
           >
             <BodySceneClient
