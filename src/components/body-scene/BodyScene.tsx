@@ -32,9 +32,9 @@ interface Props {
 const G = {
   torso: makeTorsoGeometry(),
   head: makeHeadGeometry(),
-  arm: makeLimbGeometry(0.19, 0.15, 0.11, 1.9),
-  leg: makeLimbGeometry(0.3, 0.22, 0.14, 2.1),
-  hips: makeBlobGeometry(6.0, 3.6, 4.0),
+  arm: makeLimbGeometry(0.16, 0.12, 0.085, 1.95),
+  leg: makeLimbGeometry(0.26, 0.18, 0.11, 2.1),
+  hips: makeBlobGeometry(5.2, 3.0, 3.0),
   heart: makeHeartGeometry(),
   lungL: makeLungGeometry(-1),
   lungR: makeLungGeometry(1),
@@ -61,7 +61,7 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
       new THREE.MeshPhysicalMaterial({
         color: new THREE.Color("#4a7a8c"),
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.14,
         roughness: 0.4,
         transmission: 0.6,
         thickness: 0.8,
@@ -78,9 +78,9 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
       {/* Pelvis */}
       <mesh position={[0, -0.55, 0]} geometry={G.hips} material={bodyMat} />
       {/* Arms */}
-      <mesh position={[1.02, 1.15, 0]} rotation={[0, 0, 0.12]} geometry={G.arm} material={bodyMat} />
+      <mesh position={[0.92, 1.15, 0]} rotation={[0, 0, 0.12]} geometry={G.arm} material={bodyMat} />
       <mesh
-        position={[-1.02, 1.15, 0]}
+        position={[-0.92, 1.15, 0]}
         rotation={[0, 0, -0.12]}
         geometry={G.arm}
         material={bodyMat}
@@ -192,11 +192,11 @@ function Organ({
     () =>
       new THREE.MeshStandardMaterial({
         color: new THREE.Color(active ? "#f7b955" : "#5aa0b8"),
-        emissive: new THREE.Color(active ? "#f7b955" : "#000000"),
-        emissiveIntensity: active ? 0.8 : 0,
+        emissive: new THREE.Color(active ? "#f7b955" : "#2f6d80"),
+        emissiveIntensity: active ? 0.9 : 0.18,
         roughness: 0.3,
         transparent: true,
-        opacity: active ? 1 : 0.72,
+        opacity: active ? 1 : 0.8,
       }),
     [active],
   );

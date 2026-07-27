@@ -15,32 +15,32 @@ export function makeTorsoGeometry() {
   // profile points: [radius, height]
   const raw: Array<[number, number]> = [
     [0.0, -0.95],
-    [0.62, -0.9],
-    [0.78, -0.6],
-    [0.8, -0.25],
-    [0.72, 0.15],
-    [0.66, 0.5],
-    [0.72, 0.95],
-    [0.86, 1.35],
-    [0.95, 1.62],
-    [0.78, 1.78],
-    [0.4, 1.85],
-    [0.24, 1.98],
-    [0.22, 2.2],
-    [0.0, 2.26],
+    [0.55, -0.9],
+    [0.68, -0.6],
+    [0.7, -0.25],
+    [0.6, 0.15],
+    [0.55, 0.5],
+    [0.62, 0.95],
+    [0.75, 1.35],
+    [0.84, 1.62],
+    [0.68, 1.78],
+    [0.34, 1.86],
+    [0.19, 2.02],
+    [0.17, 2.24],
+    [0.0, 2.3],
   ];
   const curve = new THREE.SplineCurve(raw.map(([r, h]) => v2(r, h)));
   const pts = curve.getPoints(28).map((p) => v2(Math.max(p.x, 0.001), p.y));
   const geo = new THREE.LatheGeometry(pts, 32);
   // flatten front-to-back so the torso reads as a human trunk, not a cylinder
-  geo.scale(1, 1, 0.62);
+  geo.scale(1, 1, 0.55);
   return geo;
 }
 
 /** Head: slightly egg-shaped ellipsoid with a hint of a jaw. */
 export function makeHeadGeometry() {
-  const geo = new THREE.SphereGeometry(0.52, 24, 20);
-  geo.scale(0.86, 1.12, 0.9);
+  const geo = new THREE.SphereGeometry(0.42, 24, 20);
+  geo.scale(0.82, 1.15, 0.92);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const y = pos.getY(i);
