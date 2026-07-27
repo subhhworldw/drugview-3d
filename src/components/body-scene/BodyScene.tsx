@@ -20,7 +20,12 @@ import {
   makeBoneGeometry,
   makeMuscleGeometry,
   makeBlobGeometry,
+  makePanelGeometry,
+  makeDeltoidGeometry,
+  makeBulgeGeometry,
+  makeMidlineGeometry,
 } from "./anatomy-geometry";
+
 
 interface Props {
   drug: Drug;
