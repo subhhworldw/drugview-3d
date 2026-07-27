@@ -1,11 +1,8 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { fetchDrugBySlug } from "@/lib/drugs-data";
-import { BodySceneClient } from "@/components/body-scene";
-import { DrugInfoPanel } from "@/components/drug-info-panel";
-import { PhaseTimeline } from "@/components/phase-timeline";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { DrugViewer } from "@/components/drug-viewer";
+
 
 const drugQueryOptions = (slug: string) => ({
   queryKey: ["drug", slug],
