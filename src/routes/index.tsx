@@ -360,44 +360,70 @@ function Library() {
             )}
           </div>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {results.map((d) => (
-              <Link
-                key={d.slug}
-                to="/drug/$slug"
-                params={{ slug: d.slug }}
-                className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/60 hover:shadow-[var(--shadow-glow)]"
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
-                        {d.drugClass}
+          <>
+            {groups.map((g) => (
+              <div key={g.key} className="mb-8">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="rounded-md border border-primary/40 bg-primary/10 px-2 py-1 font-mono text-[11px] uppercase tracking-widest text-primary">
+                    {g.key}
+                  </span>
+                  <span className="h-px flex-1 bg-border" />
+                  <span className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                    {g.items.length}
+                  </span>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {g.items.map((d) => (
+                    <Link
+                      key={d.slug}
+                      to="/drug/$slug"
+                      params={{ slug: d.slug }}
+                      className="group rounded-lg border border-border bg-card p-4 transition hover:border-primary/60 hover:shadow-[var(--shadow-glow)]"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                              {d.drugClass}
+                            </div>
+                            <SourceBadge source={d.source} />
+                          </div>
+                          <div className="mt-1 text-lg font-semibold group-hover:text-primary">
+                            {d.name}
+                          </div>
+                          {d.brand && (
+                            <div className="text-xs text-muted-foreground">{d.brand}</div>
+                          )}
+                        </div>
+                        <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                          {d.route}
+                        </div>
                       </div>
-                      <SourceBadge source={d.source} />
-                    </div>
-                    <div className="mt-1 text-lg font-semibold group-hover:text-primary">
-                      {d.name}
-                    </div>
-                    {d.brand && (
-                      <div className="text-xs text-muted-foreground">{d.brand}</div>
-                    )}
-                  </div>
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                    {d.route}
-                  </div>
+                      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                        {d.indication}
+                      </p>
+                      <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                        <span>t½ {d.halfLifeHours}h</span>
+                        <span>{d.elimination}</span>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                  {d.indication}
-                </p>
-                <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                  <span>t½ {d.halfLifeHours}h</span>
-                  <span>{d.elimination}</span>
-                </div>
-              </Link>
+              </div>
             ))}
-          </div>
+            {visible.length < results.length && (
+              <div className="mt-2 flex justify-center">
+                <button
+                  onClick={() => setVisibleCount((n) => n + PAGE)}
+                  className="rounded-full border border-primary px-5 py-2 font-mono text-[10px] uppercase tracking-widest text-primary transition hover:bg-primary hover:text-primary-foreground"
+                >
+                  Show more · {results.length - visible.length} left
+                </button>
+              </div>
+            )}
+          </>
         )}
+
       </section>
 
       <footer className="border-t border-border">
