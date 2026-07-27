@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LiveTermRouteImport } from './routes/live.$term'
 import { Route as DrugSlugRouteImport } from './routes/drug.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LiveTermRoute = LiveTermRouteImport.update({
+  id: '/live/$term',
+  path: '/live/$term',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DrugSlugRoute = DrugSlugRouteImport.update({
@@ -26,27 +32,31 @@ const DrugSlugRoute = DrugSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/drug/$slug': typeof DrugSlugRoute
+  '/live/$term': typeof LiveTermRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/drug/$slug': typeof DrugSlugRoute
+  '/live/$term': typeof LiveTermRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/drug/$slug': typeof DrugSlugRoute
+  '/live/$term': typeof LiveTermRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/drug/$slug'
+  fullPaths: '/' | '/drug/$slug' | '/live/$term'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/drug/$slug'
-  id: '__root__' | '/' | '/drug/$slug'
+  to: '/' | '/drug/$slug' | '/live/$term'
+  id: '__root__' | '/' | '/drug/$slug' | '/live/$term'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DrugSlugRoute: typeof DrugSlugRoute
+  LiveTermRoute: typeof LiveTermRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/live/$term': {
+      id: '/live/$term'
+      path: '/live/$term'
+      fullPath: '/live/$term'
+      preLoaderRoute: typeof LiveTermRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/drug/$slug': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DrugSlugRoute: DrugSlugRoute,
+  LiveTermRoute: LiveTermRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
