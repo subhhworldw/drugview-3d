@@ -174,6 +174,50 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
   );
 }
 
+/**
+ * Stylized surface muscle relief: pec/ab/oblique panels on the trunk, deltoid
+ * caps at the shoulders and spindle bulges on the limbs. Purely decorative
+ * geometry sitting just outside the body shell.
+ */
+function SurfaceMuscles({ material }: { material: THREE.Material }) {
+  return (
+    <group>
+      {/* Pectorals */}
+      <mesh position={[0.29, 1.72, 0.31]} rotation={[0, 0, -0.16]} geometry={G.pec} material={material} />
+      <mesh position={[-0.29, 1.72, 0.31]} rotation={[0, 0, 0.16]} geometry={G.pec} material={material} />
+      {/* Sternum / linea alba midline */}
+      <mesh position={[0, 1.05, 0.33]} geometry={G.midline} material={material} />
+      {/* Abdominal segmentation */}
+      {[1.2, 0.94, 0.68].map((y, row) =>
+        [-1, 1].map((sx) => (
+          <mesh
+            key={`${row}-${sx}`}
+            position={[sx * 0.155, y, 0.315 - row * 0.012]}
+            geometry={G.abPanel}
+            material={material}
+          />
+        )),
+      )}
+      {/* Obliques */}
+      <mesh position={[0.35, 0.9, 0.22]} rotation={[0, 0.5, 0.12]} geometry={G.obliquePanel} material={material} />
+      <mesh position={[-0.35, 0.9, 0.22]} rotation={[0, -0.5, -0.12]} geometry={G.obliquePanel} material={material} />
+      {/* Deltoids */}
+      <mesh position={[0.89, 1.92, 0]} geometry={G.deltoid} material={material} />
+      <mesh position={[-0.89, 1.92, 0]} geometry={G.deltoid} material={material} />
+      {/* Biceps + forearm definition */}
+      <mesh position={[0.96, 1.42, 0.06]} rotation={[0, 0, 0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[-0.96, 1.42, 0.06]} rotation={[0, 0, -0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[1.04, 0.72, 0.05]} rotation={[0, 0, 0.12]} geometry={G.forearm} material={material} />
+      <mesh position={[-1.04, 0.72, 0.05]} rotation={[0, 0, -0.12]} geometry={G.forearm} material={material} />
+      {/* Quadriceps + calves */}
+      <mesh position={[0.37, -1.18, 0.1]} geometry={G.quad} material={material} />
+      <mesh position={[-0.37, -1.18, 0.1]} geometry={G.quad} material={material} />
+      <mesh position={[0.35, -2.0, -0.05]} geometry={G.calf} material={material} />
+      <mesh position={[-0.35, -2.0, -0.05]} geometry={G.calf} material={material} />
+    </group>
+  );
+}
+
 /** Distinct low-poly silhouette per organ, sharing one material. */
 function OrganShape({ organ, material }: { organ: string; material: THREE.Material }) {
   switch (organ) {
