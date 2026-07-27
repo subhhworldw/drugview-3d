@@ -1,4 +1,9 @@
 // Thin server-fn wrapper — all runtime logic lives in drug-lookup.server.ts.
+//
+// SECURITY: this endpoint is public (any anonymous visitor can call it), so it
+// is strictly READ-ONLY. It never writes to the drugs table. Live RxNorm/openFDA
+// results are returned to the caller for ephemeral rendering only; persisting a
+// new drug row is a trusted/curated operation done outside this path.
 import { createServerFn } from "@tanstack/react-start";
 
 export const lookupDrug = createServerFn({ method: "POST" })
@@ -14,7 +19,8 @@ export const lookupDrug = createServerFn({ method: "POST" })
     const { rxNormLookup, openFdaLabel, buildCachedDrugRow, slugify } = await import(
       "./drug-lookup.server"
     );
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { createClient } = await import("@supabase/supabase-js");
+    type Db = import("@/integrations/supabase/types").Database;
 
     const rx = await rxNormLookup(term);
     if (!rx) {
@@ -24,8 +30,24 @@ export const lookupDrug = createServerFn({ method: "POST" })
       };
     }
 
-    // Cache hit? Never overwrite curated rows.
-    const existing = await supabaseAdmin
+    // Already in the catalog (curated or previously cached)? Point at that page.
+    // Public read only — publishable key, RLS applies as anon.
+    const key = process.env.SUPABASE_PUBLISHABLE_KEY!;
+    const supabasePublic = createClient<Db>(process.env.SUPABASE_URL!, key, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: {
+        fetch: (input, init) => {
+          const h = new Headers(init?.headers);
+          if (key.startsWith("sb_") && h.get("Authorization") === `Bearer ${key}`) {
+            h.delete("Authorization");
+          }
+          h.set("apikey", key);
+          return fetch(input, { ...init, headers: h });
+        },
+      },
+    });
+
+    const existing = await supabasePublic
       .from("drugs")
       .select("slug")
       .eq("slug", slugify(rx.name))
@@ -42,13 +64,7 @@ export const lookupDrug = createServerFn({ method: "POST" })
       };
     }
 
+    // Ephemeral result: returned to the caller, never persisted.
     const row = buildCachedDrugRow(rx, label);
-    const { error } = await supabaseAdmin
-      .from("drugs")
-      .upsert(row, { onConflict: "slug", ignoreDuplicates: true });
-    if (error) {
-      return { status: "no_data" as const, message: "Could not save the looked-up drug." };
-    }
-
-    return { status: "ok" as const, slug: row.slug };
+    return { status: "ok" as const, live: true as const, drug: row };
   });

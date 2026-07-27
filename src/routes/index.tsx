@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -77,6 +77,8 @@ function Library() {
   // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
   const queryClient = useQueryClient();
   const runLookup = useServerFn(lookupDrug);
+  const navigate = useNavigate();
+
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
   const attempted = useRef<Set<string>>(new Set());
@@ -115,12 +117,16 @@ function Library() {
       try {
         const res = await runLookup({ data: { term } });
         if (cancelled) return;
-        if (res.status === "ok") {
+        if (res.status === "ok" && "slug" in res && res.slug) {
           await queryClient.invalidateQueries({ queryKey: ["drugs"] });
           if (!cancelled) requestAnimationFrame(scrollToResults);
+        } else if (res.status === "ok") {
+          // Live FDA result — rendered ephemerally, never stored.
+          navigate({ to: "/live/$term", params: { term } });
         } else {
           setLookupMessage(res.message ?? "No structured data available for this drug.");
         }
+
       } catch {
         if (!cancelled) setLookupMessage("Live lookup is unavailable right now.");
       } finally {
@@ -132,7 +138,7 @@ function Library() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [shouldLookup, q, runLookup, queryClient]);
+  }, [shouldLookup, q, runLookup, queryClient, navigate]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
