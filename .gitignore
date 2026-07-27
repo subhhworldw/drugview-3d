@@ -38,3 +38,6 @@ dist-ssr
 
 # Build info
 *.tsbuildinfo
+
+# Internal planning notes (not part of the shipped app)
+.lovable/plan.md
