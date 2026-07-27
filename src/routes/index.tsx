@@ -193,11 +193,11 @@ function Library() {
       {/* Filters */}
       <section className="border-b border-border">
         <div className="mx-auto max-w-6xl px-6 py-4">
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <FilterChip active={!selectedClass} onClick={() => setSelectedClass(null)}>
               All classes
             </FilterChip>
-            {drugClasses.map((c) => (
+            {topClasses.map((c) => (
               <FilterChip
                 key={c}
                 active={selectedClass === c}
@@ -206,12 +206,57 @@ function Library() {
                 {c}
               </FilterChip>
             ))}
+            {selectedClass && !topClasses.includes(selectedClass) && (
+              <FilterChip active onClick={() => setSelectedClass(null)}>
+                {selectedClass}
+              </FilterChip>
+            )}
+            {moreClasses.length > 0 && (
+              <Popover open={classMenuOpen} onOpenChange={setClassMenuOpen}>
+                <PopoverTrigger asChild>
+                  <button className="rounded-full border border-border px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-muted-foreground transition hover:border-primary/40 hover:text-foreground">
+                    More classes ▾
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-72 p-0">
+                  <Command>
+                    <CommandInput placeholder="Search classes…" className="text-xs" />
+                    <CommandList>
+                      <CommandEmpty className="py-6 text-center text-xs text-muted-foreground">
+                        No classes found.
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {moreClasses.map((c) => (
+                          <CommandItem
+                            key={c}
+                            value={c}
+                            onSelect={() => {
+                              setSelectedClass(c === selectedClass ? null : c);
+                              setClassMenuOpen(false);
+                            }}
+                            className="font-mono text-[10px] uppercase tracking-widest"
+                          >
+                            {c}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
         </div>
       </section>
 
       {/* Grid */}
       <section className="mx-auto max-w-6xl px-6 py-8">
+        {!isLoading && !error && (
+          <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Showing {results.length} of {drugs.length} drugs
+            {selectedClass && <> · {selectedClass}</>}
+          </div>
+        )}
         {isLoading ? (
           <div className="py-24 text-center text-muted-foreground">Loading drug library…</div>
         ) : error ? (
@@ -220,7 +265,19 @@ function Library() {
           </div>
         ) : results.length === 0 ? (
           <div className="py-24 text-center text-muted-foreground">
-            {lookingUp ? (
+            {filteredOutByClass ? (
+              <>
+                <p className="text-sm">
+                  No drugs in &ldquo;{selectedClass}&rdquo; match &ldquo;{q}&rdquo;.
+                </p>
+                <button
+                  onClick={() => setSelectedClass(null)}
+                  className="mt-3 rounded-full border border-primary px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-primary transition hover:bg-primary hover:text-primary-foreground"
+                >
+                  Clear class filter
+                </button>
+              </>
+            ) : lookingUp ? (
               <>
                 <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
                   Searching FDA &amp; RxNorm…
@@ -233,6 +290,7 @@ function Library() {
               <p className="text-sm">{lookupMessage}</p>
             ) : (
               <>No drugs match &ldquo;{q}&rdquo;.</>
+
             )}
           </div>
         ) : (
