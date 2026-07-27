@@ -84,7 +84,10 @@ export async function rxNormLookup(
   const url = `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(
     term,
   )}&maxEntries=5`;
-  const res = await fetch(url, { headers: { accept: "application/json" } });
+  const res = await fetch(url, {
+    headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(8000),
+  });
   if (!res.ok) return null;
   const json = (await res.json()) as {
     approximateGroup?: { candidate?: Array<{ rxcui?: string; rank?: string }> };
@@ -95,7 +98,7 @@ export async function rxNormLookup(
 
   const propRes = await fetch(
     `https://rxnav.nlm.nih.gov/REST/rxcui/${candidate.rxcui}/property.json?propName=RxNorm%20Name`,
-    { headers: { accept: "application/json" } },
+    { headers: { accept: "application/json" }, signal: AbortSignal.timeout(8000) },
   );
   let name = term.trim();
   if (propRes.ok) {
@@ -125,11 +128,14 @@ interface FdaLabel {
 }
 
 export async function openFdaLabel(name: string): Promise<FdaLabel | null> {
+  // Strip quotes/backslashes so the value can't break out of the quoted term.
+  const safe = name.replace(/["\\]/g, "").slice(0, 80);
   const q = encodeURIComponent(
-    `openfda.generic_name:"${name}" OR openfda.brand_name:"${name}"`,
+    `openfda.generic_name:"${safe}" OR openfda.brand_name:"${safe}"`,
   );
   const res = await fetch(`https://api.fda.gov/drug/label.json?search=${q}&limit=1`, {
     headers: { accept: "application/json" },
+    signal: AbortSignal.timeout(8000),
   });
   if (!res.ok) return null;
   const json = (await res.json()) as { results?: FdaLabel[] };
