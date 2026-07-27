@@ -50,11 +50,27 @@ function Library() {
 
   const drugClasses = useMemo(() => uniqueDrugClasses(drugs), [drugs]);
 
-  const results = useMemo(() => {
-    let out = filterDrugs(drugs, q);
-    if (selectedClass) out = out.filter((d) => d.drugClass === selectedClass);
-    return out;
-  }, [drugs, q, selectedClass]);
+  // Most-used classes first, so the pill row stays short.
+  const topClasses = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const d of drugs) counts.set(d.drugClass, (counts.get(d.drugClass) ?? 0) + 1);
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .slice(0, 8)
+      .map(([c]) => c);
+  }, [drugs]);
+
+  const moreClasses = useMemo(
+    () => drugClasses.filter((c) => !topClasses.includes(c)),
+    [drugClasses, topClasses],
+  );
+  const [classMenuOpen, setClassMenuOpen] = useState(false);
+
+  const textMatches = useMemo(() => filterDrugs(drugs, q), [drugs, q]);
+  const results = useMemo(
+    () => (selectedClass ? textMatches.filter((d) => d.drugClass === selectedClass) : textMatches),
+    [textMatches, selectedClass],
+  );
 
   // Live lookup: only when the local catalog has nothing, debounced so typing
   // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
@@ -64,8 +80,18 @@ function Library() {
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
   const attempted = useRef<Set<string>>(new Set());
 
+  // A class filter hiding otherwise-valid matches is a filter problem, not a
+  // missing-drug problem — surface it instead of hitting the external APIs.
+  const filteredOutByClass = Boolean(selectedClass) && results.length === 0 && textMatches.length > 0;
+
   const shouldLookup =
-    !isLoading && !error && !selectedClass && q.trim().length >= 3 && results.length === 0;
+    !isLoading &&
+    !error &&
+    !filteredOutByClass &&
+    q.trim().length >= 3 &&
+    results.length === 0 &&
+    textMatches.length === 0;
+
 
   useEffect(() => {
     if (!shouldLookup) {
