@@ -68,10 +68,34 @@ function Library() {
   const [classMenuOpen, setClassMenuOpen] = useState(false);
 
   const textMatches = useMemo(() => filterDrugs(drugs, q), [drugs, q]);
-  const results = useMemo(
-    () => (selectedClass ? textMatches.filter((d) => d.drugClass === selectedClass) : textMatches),
-    [textMatches, selectedClass],
-  );
+  const results = useMemo(() => {
+    const list = selectedClass
+      ? textMatches.filter((d) => d.drugClass === selectedClass)
+      : textMatches;
+    return [...list].sort((a, b) => a.name.localeCompare(b.name));
+  }, [textMatches, selectedClass]);
+
+  // Progressive reveal, grouped under two-letter alphabetical headings (Aa, Ab…).
+  const PAGE = 30;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
+  useEffect(() => setVisibleCount(PAGE), [q, selectedClass]);
+
+  const visible = useMemo(() => results.slice(0, visibleCount), [results, visibleCount]);
+  const groups = useMemo(() => {
+    const out: { key: string; items: typeof visible }[] = [];
+    for (const d of visible) {
+      const raw = d.name.slice(0, 2);
+      const key =
+        raw.length < 2
+          ? raw.toUpperCase()
+          : raw[0].toUpperCase() + raw[1].toLowerCase();
+      const last = out[out.length - 1];
+      if (last && last.key === key) last.items.push(d);
+      else out.push({ key, items: [d] });
+    }
+    return out;
+  }, [visible]);
+
 
   // Live lookup: only when the local catalog has nothing, debounced so typing
   // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
