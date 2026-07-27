@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { Maximize2, Minimize2 } from "lucide-react";
 import type { Drug } from "@/lib/drugs-data";
 import { BodySceneClient } from "@/components/body-scene";
 import { DrugInfoPanel } from "@/components/drug-info-panel";
@@ -9,6 +10,24 @@ import { ThemeToggle } from "@/components/theme-toggle";
 export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
   const [time, setTime] = useState(0);
   const [playing, setPlaying] = useState(true);
+  const sceneRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(document.fullscreenElement === sceneRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await sceneRef.current?.requestFullscreen();
+    } catch {
+      // fullscreen may be blocked; ignore
+    }
+  };
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:min-h-0 lg:overflow-hidden">
