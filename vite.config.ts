@@ -7,6 +7,11 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Don't ship original source to the browser in production builds:
+  // without source maps, visitors only ever see minified bundle output.
+  vite: {
+    build: { sourcemap: false },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this
