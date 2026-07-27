@@ -56,7 +56,7 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
         <div className="relative flex flex-1 flex-col lg:min-h-0">
           <div
             ref={sceneRef}
-            className="relative h-[42vh] min-h-[260px] flex-none lg:h-auto lg:min-h-0 lg:flex-1"
+            className={`relative ${isFullscreen ? "h-full w-full" : "h-[42vh] min-h-[260px] flex-none lg:h-auto lg:min-h-0 lg:flex-1"}`}
             style={{ background: "var(--gradient-body)" }}
           >
             <BodySceneClient
