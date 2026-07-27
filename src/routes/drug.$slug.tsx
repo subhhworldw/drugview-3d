@@ -5,6 +5,7 @@ import { fetchDrugBySlug } from "@/lib/drugs-data";
 import { BodySceneClient } from "@/components/body-scene";
 import { DrugInfoPanel } from "@/components/drug-info-panel";
 import { PhaseTimeline } from "@/components/phase-timeline";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const drugQueryOptions = (slug: string) => ({
   queryKey: ["drug", slug],
@@ -95,8 +96,11 @@ function DrugPage() {
         >
           ← Drug-View library
         </Link>
-        <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
-          {drug.name}
+        <div className="flex items-center gap-3">
+          <div className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground">
+            {drug.name}
+          </div>
+          <ThemeToggle />
         </div>
       </header>
 

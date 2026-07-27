@@ -5,6 +5,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { fetchAllDrugs, filterDrugs, uniqueDrugClasses } from "@/lib/drugs-data";
 import { lookupDrug } from "@/lib/drug-lookup.functions";
 import { SourceBadge } from "@/components/source-badge";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
