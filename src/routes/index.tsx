@@ -79,6 +79,11 @@ function Library() {
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
   const attempted = useRef<Set<string>>(new Set());
+  const resultsRef = useRef<HTMLElement | null>(null);
+
+  const scrollToResults = () => {
+    resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   // A class filter hiding otherwise-valid matches is a filter problem, not a
   // missing-drug problem — surface it instead of hitting the external APIs.
@@ -111,6 +116,7 @@ function Library() {
         if (cancelled) return;
         if (res.status === "ok") {
           await queryClient.invalidateQueries({ queryKey: ["drugs"] });
+          if (!cancelled) requestAnimationFrame(scrollToResults);
         } else {
           setLookupMessage(res.message ?? "No structured data available for this drug.");
         }
@@ -165,7 +171,13 @@ function Library() {
           </p>
 
           <div className="mt-8 max-w-xl">
-            <div className="relative">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                scrollToResults();
+              }}
+              className="relative"
+            >
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
                 width="16"
@@ -183,10 +195,28 @@ function Library() {
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
                 placeholder="Search by name, brand, class or indication…"
-                className="w-full rounded-md border border-input bg-input/40 py-3 pl-10 pr-3 text-sm outline-none ring-primary/40 transition focus:border-primary focus:ring-2"
+                className="w-full rounded-md border border-input bg-input/40 py-3 pl-10 pr-12 text-sm outline-none ring-primary/40 transition focus:border-primary focus:ring-2"
               />
-            </div>
+              <button
+                type="submit"
+                aria-label="Jump to results"
+                className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition hover:bg-primary hover:text-primary-foreground"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="7" />
+                  <path d="m21 21-4.35-4.35" />
+                </svg>
+              </button>
+            </form>
           </div>
+
         </div>
       </section>
 
@@ -250,7 +280,7 @@ function Library() {
       </section>
 
       {/* Grid */}
-      <section className="mx-auto max-w-6xl px-6 py-8">
+      <section ref={resultsRef} className="mx-auto max-w-6xl px-6 py-8 scroll-mt-4">
         {!isLoading && !error && (
           <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
             Showing {results.length} of {drugs.length} drugs
