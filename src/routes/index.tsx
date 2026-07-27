@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -77,6 +77,8 @@ function Library() {
   // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
   const queryClient = useQueryClient();
   const runLookup = useServerFn(lookupDrug);
+  const navigate = useNavigate();
+
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupMessage, setLookupMessage] = useState<string | null>(null);
   const attempted = useRef<Set<string>>(new Set());
