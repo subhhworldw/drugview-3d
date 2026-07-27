@@ -100,8 +100,25 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
         emissive: new THREE.Color(isDark ? "#1d4152" : "#000000"),
         emissiveIntensity: isDark ? 1 : 0,
         transparent: true,
-        opacity: isDark ? 0.22 : 0.14,
+        opacity: isDark ? 0.17 : 0.11,
         roughness: 0.4,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    [isDark],
+  );
+  // Slightly stronger material for the surface muscle relief so the
+  // segmentation reads as raised panels without hiding the organs.
+  const muscleMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(isDark ? "#68a2b5" : "#3f7185"),
+        emissive: new THREE.Color(isDark ? "#24576b" : "#000000"),
+        emissiveIntensity: isDark ? 1 : 0,
+        transparent: true,
+        opacity: isDark ? 0.3 : 0.22,
+        roughness: 0.55,
+        depthWrite: false,
         side: THREE.DoubleSide,
       }),
     [isDark],
@@ -135,6 +152,9 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
         geometry={G.leg}
         material={bodyMat}
       />
+
+      <SurfaceMuscles material={muscleMat} />
+
 
       {/* Organs */}
       {(Object.keys(ORGAN_LABELS) as Array<keyof typeof ORGAN_LABELS>).map((organ) => {
