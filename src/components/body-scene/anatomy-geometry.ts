@@ -271,3 +271,63 @@ export function makeBlobGeometry(sx: number, sy: number, sz: number) {
   geo.scale(sx, sy, sz);
   return geo;
 }
+
+/* ---------- surface muscle definition (anatomical-chart styling) ---------- */
+
+/** Rounded, flattened panel used for pectoral / abdominal segmentation. */
+export function makePanelGeometry(w: number, h: number, d = 0.055) {
+  const geo = new THREE.SphereGeometry(0.5, 14, 12);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    // squarish-rounded panel: push points outward toward a soft rectangle
+    const k = 1 + 0.35 * (1 - Math.abs(v.y) / 0.5) * (1 - Math.abs(v.x) / 0.5);
+    pos.setXYZ(i, v.x * k, v.y * k, v.z);
+  }
+  geo.scale(w, h, d);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Deltoid cap: rounded shoulder mass, flattened against the torso. */
+export function makeDeltoidGeometry(r = 0.2) {
+  const geo = new THREE.SphereGeometry(r, 16, 14);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    if (v.y < 0) v.y *= 1.5; // taper down the upper arm
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.scale(1, 1, 0.8);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Spindle bulge used for biceps / quadriceps hints on the limbs. */
+export function makeBulgeGeometry(len: number, r: number) {
+  // rounded spindle (soft muscle belly) — smooth caps, no sharp points
+  const geo = new THREE.SphereGeometry(1, 18, 14);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const t = (v.y + 1) / 2; // 0 bottom → 1 top
+    const taper = 0.55 + 0.45 * Math.sin(Math.PI * t) + 0.15 * (1 - t);
+    v.x *= taper;
+    v.z *= taper;
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.scale(r, len / 2, r * 0.6);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+
+/** Sternum / linea alba ridge running down the midline of the trunk. */
+export function makeMidlineGeometry(len: number) {
+  const geo = new THREE.CylinderGeometry(0.022, 0.018, len, 8, 1);
+  geo.scale(1, 1, 0.6);
+  return geo;
+}

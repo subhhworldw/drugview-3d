@@ -20,7 +20,12 @@ import {
   makeBoneGeometry,
   makeMuscleGeometry,
   makeBlobGeometry,
+  makePanelGeometry,
+  makeDeltoidGeometry,
+  makeBulgeGeometry,
+  makeMidlineGeometry,
 } from "./anatomy-geometry";
+
 
 interface Props {
   drug: Drug;
@@ -54,7 +59,36 @@ const G = {
   skin: makeBlobGeometry(1.1, 1.4, 0.2),
   vessel: makeBlobGeometry(0.5, 3.0, 0.5),
   node: makeBlobGeometry(0.42, 0.5, 0.42),
+  pec: makePanelGeometry(0.42, 0.3),
+  abPanel: makePanelGeometry(0.16, 0.13),
+  obliquePanel: makePanelGeometry(0.13, 0.26),
+  deltoid: makeDeltoidGeometry(0.21),
+  biceps: makeBulgeGeometry(0.62, 0.1),
+  forearm: makeBulgeGeometry(0.5, 0.075),
+  quad: makeBulgeGeometry(0.95, 0.14),
+  calf: makeBulgeGeometry(0.6, 0.1),
+  midline: makeMidlineGeometry(1.5),
 };
+
+/** Base colour per organ so layers stay visually distinct, chart-style. */
+const ORGAN_COLORS: Record<string, string> = {
+  heart: "#d05a55",
+  lungs: "#dd8a95",
+  liver: "#a86a45",
+  stomach: "#cf9a4e",
+  kidney: "#9a6a92",
+  small_intestine: "#d1a068",
+  brain: "#c2a0c0",
+  bone: "#ded7c2",
+  bone_marrow: "#e0b7a0",
+  muscle: "#c05a5a",
+  lymph_node: "#6fbfa0",
+  pancreas: "#cfc06a",
+  thyroid: "#6fb0c8",
+  vessels: "#cc5148",
+  skin: "#d8a98c",
+};
+
 
 // A stylized human body composed from procedural geometry + highlighted organs.
 function Body({ activeOrgan }: { activeOrgan: string }) {
@@ -66,8 +100,25 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
         emissive: new THREE.Color(isDark ? "#1d4152" : "#000000"),
         emissiveIntensity: isDark ? 1 : 0,
         transparent: true,
-        opacity: isDark ? 0.22 : 0.14,
+        opacity: isDark ? 0.17 : 0.11,
         roughness: 0.4,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      }),
+    [isDark],
+  );
+  // Slightly stronger material for the surface muscle relief so the
+  // segmentation reads as raised panels without hiding the organs.
+  const muscleMat = useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: new THREE.Color(isDark ? "#68a2b5" : "#3f7185"),
+        emissive: new THREE.Color(isDark ? "#24576b" : "#000000"),
+        emissiveIntensity: isDark ? 1 : 0,
+        transparent: true,
+        opacity: isDark ? 0.3 : 0.22,
+        roughness: 0.55,
+        depthWrite: false,
         side: THREE.DoubleSide,
       }),
     [isDark],
@@ -102,6 +153,9 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
         material={bodyMat}
       />
 
+      <SurfaceMuscles material={muscleMat} />
+
+
       {/* Organs */}
       {(Object.keys(ORGAN_LABELS) as Array<keyof typeof ORGAN_LABELS>).map((organ) => {
         const pos = ORGAN_POSITIONS[organ];
@@ -116,6 +170,50 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
           />
         );
       })}
+    </group>
+  );
+}
+
+/**
+ * Stylized surface muscle relief: pec/ab/oblique panels on the trunk, deltoid
+ * caps at the shoulders and spindle bulges on the limbs. Purely decorative
+ * geometry sitting just outside the body shell.
+ */
+function SurfaceMuscles({ material }: { material: THREE.Material }) {
+  return (
+    <group>
+      {/* Pectorals */}
+      <mesh position={[0.29, 1.72, 0.31]} rotation={[0, 0, -0.16]} geometry={G.pec} material={material} />
+      <mesh position={[-0.29, 1.72, 0.31]} rotation={[0, 0, 0.16]} geometry={G.pec} material={material} />
+      {/* Sternum / linea alba midline */}
+      <mesh position={[0, 1.05, 0.33]} geometry={G.midline} material={material} />
+      {/* Abdominal segmentation */}
+      {[1.2, 0.94, 0.68].map((y, row) =>
+        [-1, 1].map((sx) => (
+          <mesh
+            key={`${row}-${sx}`}
+            position={[sx * 0.155, y, 0.315 - row * 0.012]}
+            geometry={G.abPanel}
+            material={material}
+          />
+        )),
+      )}
+      {/* Obliques */}
+      <mesh position={[0.35, 0.9, 0.22]} rotation={[0, 0.5, 0.12]} geometry={G.obliquePanel} material={material} />
+      <mesh position={[-0.35, 0.9, 0.22]} rotation={[0, -0.5, -0.12]} geometry={G.obliquePanel} material={material} />
+      {/* Deltoids */}
+      <mesh position={[0.89, 1.92, 0]} geometry={G.deltoid} material={material} />
+      <mesh position={[-0.89, 1.92, 0]} geometry={G.deltoid} material={material} />
+      {/* Biceps + forearm definition */}
+      <mesh position={[0.96, 1.42, 0.06]} rotation={[0, 0, 0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[-0.96, 1.42, 0.06]} rotation={[0, 0, -0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[1.04, 0.72, 0.05]} rotation={[0, 0, 0.12]} geometry={G.forearm} material={material} />
+      <mesh position={[-1.04, 0.72, 0.05]} rotation={[0, 0, -0.12]} geometry={G.forearm} material={material} />
+      {/* Quadriceps + calves */}
+      <mesh position={[0.37, -1.18, 0.1]} geometry={G.quad} material={material} />
+      <mesh position={[-0.37, -1.18, 0.1]} geometry={G.quad} material={material} />
+      <mesh position={[0.35, -2.0, -0.05]} geometry={G.calf} material={material} />
+      <mesh position={[-0.35, -2.0, -0.05]} geometry={G.calf} material={material} />
     </group>
   );
 }
@@ -197,17 +295,17 @@ function Organ({
   label: string;
 }) {
   const ref = useRef<THREE.Group>(null);
-  const material = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color(active ? "#f7b955" : "#5aa0b8"),
-        emissive: new THREE.Color(active ? "#f7b955" : "#2f6d80"),
-        emissiveIntensity: active ? 0.9 : 0.18,
-        roughness: 0.35,
-        metalness: 0.05,
-      }),
-    [active],
-  );
+  const material = useMemo(() => {
+    const base = ORGAN_COLORS[organ] ?? "#5aa0b8";
+    return new THREE.MeshStandardMaterial({
+      color: new THREE.Color(active ? "#f7b955" : base),
+      emissive: new THREE.Color(active ? "#f7b955" : base),
+      emissiveIntensity: active ? 0.9 : 0.14,
+      roughness: 0.45,
+      metalness: 0.05,
+    });
+  }, [active, organ]);
+
   useFrame(({ clock }) => {
     if (!ref.current) return;
     const s = active ? 1 + Math.sin(clock.elapsedTime * 4) * 0.08 : 1;
