@@ -307,20 +307,23 @@ export function makeDeltoidGeometry(r = 0.2) {
 
 /** Spindle bulge used for biceps / quadriceps hints on the limbs. */
 export function makeBulgeGeometry(len: number, r: number) {
-  const raw: Array<[number, number]> = [
-    [0.001, -len / 2],
-    [r * 0.4, -len / 2 + len * 0.15],
-    [r, -len * 0.05],
-    [r * 0.9, len * 0.15],
-    [r * 0.35, len / 2 - len * 0.12],
-    [0.001, len / 2],
-  ];
-  const curve = new THREE.SplineCurve(raw.map(([rr, h]) => v2(rr, h)));
-  const pts = curve.getPoints(14).map((p) => v2(Math.max(p.x, 0.001), p.y));
-  const geo = new THREE.LatheGeometry(pts, 12);
-  geo.scale(1, 1, 0.55);
+  // rounded spindle (soft muscle belly) — smooth caps, no sharp points
+  const geo = new THREE.SphereGeometry(1, 18, 14);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const t = (v.y + 1) / 2; // 0 bottom → 1 top
+    const taper = 0.55 + 0.45 * Math.sin(Math.PI * t) + 0.15 * (1 - t);
+    v.x *= taper;
+    v.z *= taper;
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.scale(r, len / 2, r * 0.6);
+  geo.computeVertexNormals();
   return geo;
 }
+
 
 /** Sternum / linea alba ridge running down the midline of the trunk. */
 export function makeMidlineGeometry(len: number) {
