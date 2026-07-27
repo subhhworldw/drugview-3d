@@ -318,10 +318,11 @@ function Library() {
       <section ref={resultsRef} className="mx-auto max-w-6xl px-6 py-8 scroll-mt-4">
         {!isLoading && !error && (
           <div className="mb-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-            Showing {results.length} of {drugs.length} drugs
+            Showing {visible.length} of {results.length} matching · {drugs.length} total
             {selectedClass && <> · {selectedClass}</>}
           </div>
         )}
+
         {isLoading ? (
           <div className="py-24 text-center text-muted-foreground">Loading drug library…</div>
         ) : error ? (
