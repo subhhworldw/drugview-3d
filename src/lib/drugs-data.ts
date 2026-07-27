@@ -55,7 +55,15 @@ export function isGenericTarget(drug: Drug): boolean {
 
 type DrugRow = Tables<"drugs">;
 
-function rowToDrug(r: DrugRow): Drug {
+/** Row shape shared by stored rows and ephemeral live-lookup results. */
+export type DrugRowLike = Omit<DrugRow, "id" | "created_at" | "updated_at"> & {
+  source?: string | null;
+  source_url?: string | null;
+  brand?: string | null;
+};
+
+export function rowToDrug(r: DrugRowLike): Drug {
+
   return {
     slug: r.slug,
     name: r.name,
