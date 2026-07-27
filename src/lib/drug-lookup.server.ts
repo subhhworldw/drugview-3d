@@ -56,15 +56,15 @@ export async function rxNormLookup(
 ): Promise<{ rxcui: string; name: string } | null> {
   const url = `https://rxnav.nlm.nih.gov/REST/approximateTerm.json?term=${encodeURIComponent(
     term,
-  )}&maxEntries=1`;
+  )}&maxEntries=5`;
   const res = await fetch(url, { headers: { accept: "application/json" } });
   if (!res.ok) return null;
   const json = (await res.json()) as {
-    approximateGroup?: { candidate?: Array<{ rxcui?: string; score?: string }> };
+    approximateGroup?: { candidate?: Array<{ rxcui?: string; rank?: string }> };
   };
-  const candidate = json.approximateGroup?.candidate?.[0];
+  const candidates = json.approximateGroup?.candidate ?? [];
+  const candidate = candidates.find((c) => c.rank === "1" && c.rxcui) ?? candidates[0];
   if (!candidate?.rxcui) return null;
-  if (candidate.score && Number(candidate.score) < 40) return null;
 
   const propRes = await fetch(
     `https://rxnav.nlm.nih.gov/REST/rxcui/${candidate.rxcui}/property.json?propName=RxNorm%20Name`,
