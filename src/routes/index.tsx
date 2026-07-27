@@ -376,7 +376,10 @@ function Library() {
 
       <footer className="border-t border-border">
         <div className="mx-auto max-w-6xl px-6 py-8 text-center text-[11px] text-muted-foreground">
-          Drug-View · Educational tool · Not for clinical decision-making
+          <p>Drug-View · Educational tool · Not for clinical decision-making</p>
+          <p className="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Built by: Subham Samal (IMSC.Bi, BJB Autonomous College) 🧬
+          </p>
         </div>
       </footer>
     </div>
