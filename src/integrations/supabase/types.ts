@@ -34,6 +34,7 @@ export type Database = {
           receptors: string[]
           route: string
           slug: string
+          source: string
           source_url: string | null
           target_organ: string
           typical_dose: string
@@ -58,6 +59,7 @@ export type Database = {
           receptors?: string[]
           route: string
           slug: string
+          source?: string
           source_url?: string | null
           target_organ: string
           typical_dose: string
@@ -82,6 +84,7 @@ export type Database = {
           receptors?: string[]
           route?: string
           slug?: string
+          source?: string
           source_url?: string | null
           target_organ?: string
           typical_dose?: string

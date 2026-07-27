@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { fetchAllDrugs, filterDrugs, uniqueDrugClasses } from "@/lib/drugs-data";
+import { lookupDrug } from "@/lib/drug-lookup.functions";
+import { SourceBadge } from "@/components/source-badge";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -42,6 +45,51 @@ function Library() {
     if (selectedClass) out = out.filter((d) => d.drugClass === selectedClass);
     return out;
   }, [drugs, q, selectedClass]);
+
+  // Live lookup: only when the local catalog has nothing, debounced so typing
+  // doesn't spam RxNorm/openFDA. Each term is attempted at most once.
+  const queryClient = useQueryClient();
+  const runLookup = useServerFn(lookupDrug);
+  const [lookingUp, setLookingUp] = useState(false);
+  const [lookupMessage, setLookupMessage] = useState<string | null>(null);
+  const attempted = useRef<Set<string>>(new Set());
+
+  const shouldLookup =
+    !isLoading && !error && !selectedClass && q.trim().length >= 3 && results.length === 0;
+
+  useEffect(() => {
+    if (!shouldLookup) {
+      setLookupMessage(null);
+      return;
+    }
+    const term = q.trim().toLowerCase();
+    if (attempted.current.has(term)) return;
+
+    let cancelled = false;
+    const timer = setTimeout(async () => {
+      attempted.current.add(term);
+      setLookingUp(true);
+      setLookupMessage(null);
+      try {
+        const res = await runLookup({ data: { term } });
+        if (cancelled) return;
+        if (res.status === "ok") {
+          await queryClient.invalidateQueries({ queryKey: ["drugs"] });
+        } else {
+          setLookupMessage(res.message ?? "No structured data available for this drug.");
+        }
+      } catch {
+        if (!cancelled) setLookupMessage("Live lookup is unavailable right now.");
+      } finally {
+        if (!cancelled) setLookingUp(false);
+      }
+    }, 700);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [shouldLookup, q, runLookup, queryClient]);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -136,7 +184,20 @@ function Library() {
           </div>
         ) : results.length === 0 ? (
           <div className="py-24 text-center text-muted-foreground">
-            No drugs match &ldquo;{q}&rdquo;.
+            {lookingUp ? (
+              <>
+                <div className="font-mono text-[11px] uppercase tracking-widest text-primary">
+                  Searching FDA &amp; RxNorm…
+                </div>
+                <p className="mt-2 text-sm">
+                  Not in the local catalog — looking &ldquo;{q}&rdquo; up live.
+                </p>
+              </>
+            ) : lookupMessage ? (
+              <p className="text-sm">{lookupMessage}</p>
+            ) : (
+              <>No drugs match &ldquo;{q}&rdquo;.</>
+            )}
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -149,8 +210,11 @@ function Library() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
-                      {d.drugClass}
+                    <div className="flex items-center gap-2">
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-primary">
+                        {d.drugClass}
+                      </div>
+                      <SourceBadge source={d.source} />
                     </div>
                     <div className="mt-1 text-lg font-semibold group-hover:text-primary">
                       {d.name}

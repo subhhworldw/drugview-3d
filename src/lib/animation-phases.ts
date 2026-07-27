@@ -1,4 +1,4 @@
-import type { Drug, Organ } from "./drugs-data";
+import { isGenericTarget, type Drug, type Organ } from "./drugs-data";
 
 export interface Phase {
   id: string;
@@ -46,6 +46,38 @@ export function buildPhases(drug: Drug): Phase[] {
       toOrgan: "vessels",
       color: "primary",
     });
+  }
+
+  // 3. Distribution — generic systemic template when the target organ is unconfident.
+  if (isGenericTarget(drug)) {
+    phases.push({
+      id: "distribution",
+      label: "Systemic circulation",
+      description: `${drug.name} distributes through the bloodstream to body tissues. A specific organ target isn't available in the structured FDA data.`,
+      duration: 5,
+      fromOrgan: "vessels",
+      toOrgan: "vessels",
+      color: "primary",
+    });
+    phases.push({
+      id: "metabolism",
+      label: "Clearance",
+      description: "Gradually cleared from the circulation; detailed metabolic pathway not available in structured data.",
+      duration: 4,
+      fromOrgan: "vessels",
+      toOrgan: "liver",
+      color: "accent",
+    });
+    phases.push({
+      id: "elimination",
+      label: "Elimination",
+      description: "Excreted from the body.",
+      duration: 3,
+      fromOrgan: "liver",
+      toOrgan: "kidney",
+      color: "destructive",
+    });
+    return phases;
   }
 
   // 3. Distribution
