@@ -11,7 +11,7 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
   const [playing, setPlaying] = useState(true);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground lg:h-screen lg:min-h-0 lg:overflow-hidden">
       <header className="flex items-center justify-between border-b border-border px-6 py-3">
         <Link
           to="/"
