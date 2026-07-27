@@ -54,25 +54,53 @@ export function DrugViewer({ drug, notice }: { drug: Drug; notice?: string }) {
 
       <div className="flex flex-1 flex-col lg:min-h-0 lg:flex-row">
         <div className="relative flex min-h-[60vh] flex-1 flex-col lg:min-h-0">
-          <div className="min-h-0 flex-1" style={{ background: "var(--gradient-body)" }}>
+          <div
+            ref={sceneRef}
+            className="relative min-h-0 flex-1"
+            style={{ background: "var(--gradient-body)" }}
+          >
             <BodySceneClient
               drug={drug}
               time={time}
               playing={playing}
               onTimeChange={setTime}
             />
+            <button
+              onClick={toggleFullscreen}
+              aria-label={isFullscreen ? "Exit full screen" : "View full screen"}
+              className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card/80 text-muted-foreground backdrop-blur transition hover:text-foreground"
+            >
+              {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+            </button>
+            {isFullscreen && (
+              <div className="absolute inset-x-0 bottom-0 z-10">
+                <PhaseTimeline
+                  drug={drug}
+                  time={time}
+                  playing={playing}
+                  onTogglePlay={() => setPlaying((p) => !p)}
+                  onSeek={(t) => {
+                    setTime(t);
+                    setPlaying(false);
+                  }}
+                />
+              </div>
+            )}
           </div>
-          <PhaseTimeline
-            drug={drug}
-            time={time}
-            playing={playing}
-            onTogglePlay={() => setPlaying((p) => !p)}
-            onSeek={(t) => {
-              setTime(t);
-              setPlaying(false);
-            }}
-          />
+          {!isFullscreen && (
+            <PhaseTimeline
+              drug={drug}
+              time={time}
+              playing={playing}
+              onTogglePlay={() => setPlaying((p) => !p)}
+              onSeek={(t) => {
+                setTime(t);
+                setPlaying(false);
+              }}
+            />
+          )}
         </div>
+
 
         <aside className="w-full border-t border-border bg-card/40 lg:h-full lg:w-[380px] lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
           <DrugInfoPanel drug={drug} />
