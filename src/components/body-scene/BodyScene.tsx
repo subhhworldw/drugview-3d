@@ -295,17 +295,17 @@ function Organ({
   label: string;
 }) {
   const ref = useRef<THREE.Group>(null);
-  const material = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color(active ? "#f7b955" : "#5aa0b8"),
-        emissive: new THREE.Color(active ? "#f7b955" : "#2f6d80"),
-        emissiveIntensity: active ? 0.9 : 0.18,
-        roughness: 0.35,
-        metalness: 0.05,
-      }),
-    [active],
-  );
+  const material = useMemo(() => {
+    const base = ORGAN_COLORS[organ] ?? "#5aa0b8";
+    return new THREE.MeshStandardMaterial({
+      color: new THREE.Color(active ? "#f7b955" : base),
+      emissive: new THREE.Color(active ? "#f7b955" : base),
+      emissiveIntensity: active ? 0.9 : 0.14,
+      roughness: 0.45,
+      metalness: 0.05,
+    });
+  }, [active, organ]);
+
   useFrame(({ clock }) => {
     if (!ref.current) return;
     const s = active ? 1 + Math.sin(clock.elapsedTime * 4) * 0.08 : 1;
