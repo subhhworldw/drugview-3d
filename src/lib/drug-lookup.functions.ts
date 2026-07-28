@@ -9,7 +9,7 @@
 // rate limited per IP. Everything else in the app stays read-only.
 import { createServerFn } from "@tanstack/react-start";
 
-const MAX_CACHE_WRITES_PER_IP_PER_HOUR = 10;
+const MAX_CACHE_WRITES_PER_IP_PER_HOUR = 20;
 
 export const lookupDrug = createServerFn({ method: "POST" })
   .inputValidator((data: { term: string }) => ({
