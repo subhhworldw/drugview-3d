@@ -197,6 +197,15 @@ export function extractHalfLifeHours(text: string): number | null {
     new RegExp(`(?:half[-\\s]?life|t\\s?1?\\s?/\\s?2|t½)${gap}${num}\\s*${unit}\\b`, "i"),
   ];
 
+  // Flattened label tables put the unit in the row header and the value after
+  // it: "Half-life, hours [Mean (CV%)] 14.7 (33)". Handled separately because
+  // here the unit precedes the number.
+  const tableRe = new RegExp(
+    `(?:half[-\\s]?life|t\\s?1?\\s?/\\s?2|t½)\\s*[,(\\[]?\\s*${unit}\\b[^.;\\n]{0,60}?${num}`,
+    "i",
+  );
+
+
   for (const re of patterns) {
     const m = text.match(re);
     if (!m) continue;
@@ -211,13 +220,55 @@ export function extractHalfLifeHours(text: string): number | null {
     if (hours <= 0 || hours > 24 * 365) continue;
     return Math.round(hours * 100) / 100;
   }
+
+  const tm = text.match(tableRe);
+  if (tm) {
+    const factor = UNIT_TO_HOURS[tm[1].toLowerCase()];
+    const value = parseFloat(tm[2].replace(",", "."));
+    if (factor && isFinite(value)) {
+      const hours = value * factor;
+      if (hours > 0 && hours <= 24 * 365) return Math.round(hours * 100) / 100;
+    }
+  }
   return null;
 }
 
+/**
+ * Recovered percentages per excretion route, e.g. "Feces 34% ... Urine 0.02%".
+ * Labels state these as tables, where keyword counting is meaningless.
+ */
+function excretionPercents(scope: string): { renal: number; fecal: number } | null {
+  let renal = 0;
+  let fecal = 0;
+  const route = "(urine|urinary|feces|faeces|fecal|faecal|bile|biliary)";
+  const pctNum = "(\\d+(?:\\.\\d+)?)\\s*%";
+  const add = (word: string, raw: string) => {
+    const pct = parseFloat(raw);
+    if (!isFinite(pct) || pct > 100) return;
+    if (/^u/i.test(word)) renal = Math.max(renal, pct);
+    else fecal = Math.max(fecal, pct);
+  };
+  // "Feces 34%" (table form) and "86% ... recovered in feces" (prose form)
+  for (const m of scope.matchAll(new RegExp(`\\b${route}\\b[^.;\\n%]{0,12}?${pctNum}`, "gi"))) {
+    add(m[1], m[2]);
+  }
+  for (const m of scope.matchAll(new RegExp(`${pctNum}[^.;\\n%]{0,25}?\\b${route}\\b`, "gi"))) {
+    add(m[2], m[1]);
+  }
+  return renal || fecal ? { renal, fecal } : null;
+}
+
+
+
 /** Narrow the text to the Excretion/Elimination subsection when the label has one. */
 function excretionScope(text: string): string {
-  const m = text.match(/\b(?:Excretion|Elimination)\b([\s\S]{0,2500})/i);
+  // Prefer an explicit "Excretion" heading; "Elimination" often appears first
+  // as a table row label with no route information under it.
+  const m =
+    text.match(/\bExcretion\b([\s\S]{0,2500})/i) ??
+    text.match(/\bElimination\b([\s\S]{0,2500})/i);
   return m ? m[1] : text;
+
 }
 
 /**
@@ -234,7 +285,23 @@ export function extractElimination(text: string): PkFacts["elimination"] {
   const pulmonary = count(/\b(exhaled|expired air|pulmonary excretion|via the lungs)\b/gi);
 
   if (pulmonary > 0 && pulmonary >= renal && pulmonary >= fecal) return "pulmonary";
+
+  // Stated recovery percentages beat keyword frequency when the label has them.
+  const pct = excretionPercents(scope);
+  if (pct) {
+    const { renal: r, fecal: f } = pct;
+    if (r && f) {
+      const hi = Math.max(r, f);
+      const lo = Math.min(r, f);
+      if (lo / hi >= 0.34) return "mixed";
+      return r > f ? "renal" : "biliary";
+    }
+    if (r) return "renal";
+    if (f) return "biliary";
+  }
+
   if (renal === 0 && fecal === 0) return null;
+
   if (renal > 0 && fecal > 0) {
     const ratio = Math.min(renal, fecal) / Math.max(renal, fecal);
     // both routes described with comparable emphasis → genuinely mixed
