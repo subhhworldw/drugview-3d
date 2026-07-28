@@ -14,30 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      drug_pk_backfill: {
-        Row: {
-          drug_id: string
-          elimination: string | null
-          half_life_hours: number | null
-          metabolism_enzymes: string[]
-          metabolism_organ: string | null
-        }
-        Insert: {
-          drug_id: string
-          elimination?: string | null
-          half_life_hours?: number | null
-          metabolism_enzymes?: string[]
-          metabolism_organ?: string | null
-        }
-        Update: {
-          drug_id?: string
-          elimination?: string | null
-          half_life_hours?: number | null
-          metabolism_enzymes?: string[]
-          metabolism_organ?: string | null
-        }
-        Relationships: []
-      }
       drugs: {
         Row: {
           absorption_site: string

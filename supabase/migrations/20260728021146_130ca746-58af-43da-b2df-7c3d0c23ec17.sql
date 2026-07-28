@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS public.drug_pk_backfill;
