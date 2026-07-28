@@ -240,16 +240,24 @@ export function extractHalfLifeHours(text: string): number | null {
 function excretionPercents(scope: string): { renal: number; fecal: number } | null {
   let renal = 0;
   let fecal = 0;
-  for (const m of scope.matchAll(
-    /\b(urine|urinary|feces|faeces|fecal|faecal|bile|biliary)\b[^.;\n%]{0,40}?(\d+(?:\.\d+)?)\s*%/gi,
-  )) {
-    const pct = parseFloat(m[2]);
-    if (!isFinite(pct) || pct > 100) continue;
-    if (/^u/i.test(m[1])) renal = Math.max(renal, pct);
+  const route = "(urine|urinary|feces|faeces|fecal|faecal|bile|biliary)";
+  const pctNum = "(\\d+(?:\\.\\d+)?)\\s*%";
+  const add = (word: string, raw: string) => {
+    const pct = parseFloat(raw);
+    if (!isFinite(pct) || pct > 100) return;
+    if (/^u/i.test(word)) renal = Math.max(renal, pct);
     else fecal = Math.max(fecal, pct);
+  };
+  // "Feces 34%" (table form) and "86% ... recovered in feces" (prose form)
+  for (const m of scope.matchAll(new RegExp(`\\b${route}\\b[^.;\\n%]{0,40}?${pctNum}`, "gi"))) {
+    add(m[1], m[2]);
+  }
+  for (const m of scope.matchAll(new RegExp(`${pctNum}[^.;\\n%]{0,60}?\\b${route}\\b`, "gi"))) {
+    add(m[2], m[1]);
   }
   return renal || fecal ? { renal, fecal } : null;
 }
+
 
 
 /** Narrow the text to the Excretion/Elimination subsection when the label has one. */
