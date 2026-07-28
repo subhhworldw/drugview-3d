@@ -92,6 +92,69 @@ export type Database = {
         }
         Relationships: []
       }
+      lookup_cache_writes: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      seed_runs: {
+        Row: {
+          added: number
+          attempted: number
+          created_at: string
+          failed: number
+          finished_at: string | null
+          id: string
+          kind: string
+          notes: string | null
+          skipped: number
+          started_at: string
+          updated_at: string
+        }
+        Insert: {
+          added?: number
+          attempted?: number
+          created_at?: string
+          failed?: number
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          skipped?: number
+          started_at?: string
+          updated_at?: string
+        }
+        Update: {
+          added?: number
+          attempted?: number
+          created_at?: string
+          failed?: number
+          finished_at?: string | null
+          id?: string
+          kind?: string
+          notes?: string | null
+          skipped?: number
+          started_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
