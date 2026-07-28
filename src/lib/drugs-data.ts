@@ -52,9 +52,6 @@ export interface Drug {
 /** Shown wherever a PK value genuinely isn't in the source data. */
 export const NOT_AVAILABLE = "Not available in structured data";
 
-/** Half-life used only to pace the animation when the real value is unknown. */
-export const FALLBACK_PACING_HALF_LIFE_HOURS = 6;
-
 
 export type DrugSource = "curated" | "api_cache";
 
