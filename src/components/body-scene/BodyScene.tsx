@@ -41,8 +41,8 @@ interface Props {
 const G = {
   torso: makeTorsoGeometry(),
   head: makeHeadGeometry(),
-  arm: makeLimbGeometry(0.155, 0.105, 0.062, 2.55),
-  leg: makeLimbGeometry(0.27, 0.175, 0.088, 2.36),
+  arm: makeLimbGeometry(0.17, 0.115, 0.07, 2.55),
+  leg: makeLimbGeometry(0.3, 0.19, 0.095, 2.9),
   hand: makeHandGeometry(),
   foot: makeFootGeometry(),
   shoulderCap: makeJointGeometry(0.185),
@@ -70,11 +70,11 @@ const G = {
   pec: makePanelGeometry(0.42, 0.3),
   abPanel: makePanelGeometry(0.16, 0.13),
   obliquePanel: makePanelGeometry(0.13, 0.26),
-  deltoid: makeDeltoidGeometry(0.21),
+  deltoid: makeDeltoidGeometry(0.17),
   biceps: makeBulgeGeometry(0.62, 0.1),
   forearm: makeBulgeGeometry(0.5, 0.075),
-  quad: makeBulgeGeometry(0.95, 0.14),
-  calf: makeBulgeGeometry(0.6, 0.1),
+  quad: makeBulgeGeometry(1.15, 0.15),
+  calf: makeBulgeGeometry(0.75, 0.11),
   midline: makeMidlineGeometry(1.5),
 };
 
@@ -108,17 +108,17 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
   const bodyMat = useMemo(
     () =>
       new THREE.MeshPhysicalMaterial({
-        color: new THREE.Color(isDark ? "#e8a888" : "#e6a184"),
+        color: new THREE.Color(isDark ? "#f4b797" : "#eda587"),
         emissive: new THREE.Color(isDark ? "#3a1d16" : "#000000"),
         emissiveIntensity: isDark ? 0.6 : 0,
         transparent: true,
-        opacity: isDark ? 0.26 : 0.2,
+        opacity: isDark ? 0.23 : 0.18,
         roughness: 0.62,
         metalness: 0,
         clearcoat: 0.35,
         clearcoatRoughness: 0.6,
-        sheen: 1,
-        sheenRoughness: 0.75,
+        sheen: 0.6,
+        sheenRoughness: 0.6,
         sheenColor: new THREE.Color(isDark ? "#ffd2b4" : "#ffbfa0"),
         transmission: 0.18,
         thickness: 0.9,
@@ -160,16 +160,16 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
       {/* Arms — rounded shoulder caps, tapered limbs, mitten hands */}
       {[1, -1].map((sx) => (
         <group key={`arm${sx}`}>
-          <mesh position={[sx * 0.86, 1.9, 0]} geometry={G.shoulderCap} material={bodyMat} />
+          <mesh position={[sx * 0.84, 1.95, 0]} geometry={G.shoulderCap} material={bodyMat} />
           <mesh
-            position={[sx * 0.9, 0.675, 0]}
+            position={[sx * 0.9, 0.725, 0]}
             rotation={[0, 0, sx * 0.09]}
             geometry={G.arm}
             material={bodyMat}
           />
-          <mesh position={[sx * 1.0, 0.75, 0]} geometry={G.elbowCap} material={bodyMat} />
+          <mesh position={[sx * 1.0, 0.8, 0]} geometry={G.elbowCap} material={bodyMat} />
           <mesh
-            position={[sx * 1.02, -0.68, 0.01]}
+            position={[sx * 1.02, -0.62, 0.01]}
             rotation={[0, 0, sx * 0.09]}
             geometry={G.hand}
             material={bodyMat}
@@ -181,14 +181,14 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
       {[1, -1].map((sx) => (
         <group key={`leg${sx}`}>
           <mesh
-            position={[sx * 0.34, -1.6, 0]}
+            position={[sx * 0.34, -1.55, 0]}
             rotation={[0, 0, sx * 0.03]}
             geometry={G.leg}
             material={bodyMat}
           />
-          <mesh position={[sx * 0.37, -1.53, 0.01]} geometry={G.kneeCap} material={bodyMat} />
-          <mesh position={[sx * 0.39, -2.72, 0]} geometry={G.ankleCap} material={bodyMat} />
-          <mesh position={[sx * 0.39, -2.86, 0.09]} geometry={G.foot} material={bodyMat} />
+          <mesh position={[sx * 0.37, -1.46, 0.02]} geometry={G.kneeCap} material={bodyMat} />
+          <mesh position={[sx * 0.39, -2.85, 0]} geometry={G.ankleCap} material={bodyMat} />
+          <mesh position={[sx * 0.39, -2.98, 0.09]} geometry={G.foot} material={bodyMat} />
         </group>
       ))}
 
@@ -241,18 +241,18 @@ function SurfaceMuscles({ material }: { material: THREE.Material }) {
       <mesh position={[0.34, 0.92, 0.2]} rotation={[0, 0.5, 0.12]} geometry={G.obliquePanel} material={material} />
       <mesh position={[-0.34, 0.92, 0.2]} rotation={[0, -0.5, -0.12]} geometry={G.obliquePanel} material={material} />
       {/* Deltoids */}
-      <mesh position={[0.88, 1.9, 0]} geometry={G.deltoid} material={material} />
-      <mesh position={[-0.88, 1.9, 0]} geometry={G.deltoid} material={material} />
+      <mesh position={[0.86, 1.94, 0]} geometry={G.deltoid} material={material} />
+      <mesh position={[-0.86, 1.94, 0]} geometry={G.deltoid} material={material} />
       {/* Biceps + forearm definition */}
-      <mesh position={[0.97, 1.19, 0.05]} rotation={[0, 0, 0.12]} geometry={G.biceps} material={material} />
-      <mesh position={[-0.97, 1.19, 0.05]} rotation={[0, 0, -0.12]} geometry={G.biceps} material={material} />
-      <mesh position={[1.05, 0.32, 0.04]} rotation={[0, 0, 0.12]} geometry={G.forearm} material={material} />
-      <mesh position={[-1.05, 0.32, 0.04]} rotation={[0, 0, -0.12]} geometry={G.forearm} material={material} />
+      <mesh position={[0.97, 1.24, 0.05]} rotation={[0, 0, 0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[-0.97, 1.24, 0.05]} rotation={[0, 0, -0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[1.05, 0.37, 0.04]} rotation={[0, 0, 0.12]} geometry={G.forearm} material={material} />
+      <mesh position={[-1.05, 0.37, 0.04]} rotation={[0, 0, -0.12]} geometry={G.forearm} material={material} />
       {/* Quadriceps + calves */}
-      <mesh position={[0.36, -1.13, 0.09]} geometry={G.quad} material={material} />
-      <mesh position={[-0.36, -1.13, 0.09]} geometry={G.quad} material={material} />
-      <mesh position={[0.38, -1.95, -0.05]} geometry={G.calf} material={material} />
-      <mesh position={[-0.38, -1.95, -0.05]} geometry={G.calf} material={material} />
+      <mesh position={[0.36, -0.97, 0.1]} geometry={G.quad} material={material} />
+      <mesh position={[-0.36, -0.97, 0.1]} geometry={G.quad} material={material} />
+      <mesh position={[0.4, -1.96, -0.05]} geometry={G.calf} material={material} />
+      <mesh position={[-0.4, -1.96, -0.05]} geometry={G.calf} material={material} />
     </group>
   );
 }

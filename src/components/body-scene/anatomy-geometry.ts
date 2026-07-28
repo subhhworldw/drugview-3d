@@ -18,21 +18,20 @@ function v2(x: number, y: number) {
 export function makeTorsoGeometry() {
   // profile points: [radius, height]
   const raw: Array<[number, number]> = [
-    [0.0, -0.98],
-    [0.34, -0.96],
-    [0.58, -0.9],
-    [0.7, -0.76],
-    [0.73, -0.6],
-    [0.7, -0.42],
-    [0.62, -0.2],
-    [0.55, 0.02],
-    [0.5, 0.22],
-    [0.485, 0.4], // waist — noticeably narrower than shoulders and hips
-    [0.5, 0.6],
-    [0.56, 0.85],
-    [0.64, 1.1],
-    [0.72, 1.32],
-    [0.79, 1.5],
+    [0.0, -0.6],
+    [0.36, -0.58],
+    [0.6, -0.5],
+    [0.7, -0.36],
+    [0.72, -0.2], // hips
+    [0.66, -0.02],
+    [0.57, 0.16],
+    [0.51, 0.32],
+    [0.49, 0.44], // waist — clearly narrower than shoulders and hips
+    [0.51, 0.6],
+    [0.57, 0.85],
+    [0.65, 1.1],
+    [0.73, 1.32],
+    [0.8, 1.5],
     [0.845, 1.63],
     [0.85, 1.72], // rounded shoulder shelf, not a blocky corner
     [0.8, 1.8],
