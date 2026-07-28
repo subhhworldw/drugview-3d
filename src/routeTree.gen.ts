@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LiveTermRouteImport } from './routes/live.$term'
 import { Route as DrugSlugRouteImport } from './routes/drug.$slug'
+import { Route as ApiPublicHooksSeedDrugsRouteImport } from './routes/api/public/hooks/seed-drugs'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,53 @@ const DrugSlugRoute = DrugSlugRouteImport.update({
   path: '/drug/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicHooksSeedDrugsRoute = ApiPublicHooksSeedDrugsRouteImport.update({
+  id: '/api/public/hooks/seed-drugs',
+  path: '/api/public/hooks/seed-drugs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/drug/$slug': typeof DrugSlugRoute
   '/live/$term': typeof LiveTermRoute
+  '/api/public/hooks/seed-drugs': typeof ApiPublicHooksSeedDrugsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/drug/$slug': typeof DrugSlugRoute
   '/live/$term': typeof LiveTermRoute
+  '/api/public/hooks/seed-drugs': typeof ApiPublicHooksSeedDrugsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/drug/$slug': typeof DrugSlugRoute
   '/live/$term': typeof LiveTermRoute
+  '/api/public/hooks/seed-drugs': typeof ApiPublicHooksSeedDrugsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/drug/$slug' | '/live/$term'
+  fullPaths:
+    | '/'
+    | '/drug/$slug'
+    | '/live/$term'
+    | '/api/public/hooks/seed-drugs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/drug/$slug' | '/live/$term'
-  id: '__root__' | '/' | '/drug/$slug' | '/live/$term'
+  to: '/' | '/drug/$slug' | '/live/$term' | '/api/public/hooks/seed-drugs'
+  id:
+    | '__root__'
+    | '/'
+    | '/drug/$slug'
+    | '/live/$term'
+    | '/api/public/hooks/seed-drugs'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DrugSlugRoute: typeof DrugSlugRoute
   LiveTermRoute: typeof LiveTermRoute
+  ApiPublicHooksSeedDrugsRoute: typeof ApiPublicHooksSeedDrugsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +101,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DrugSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/hooks/seed-drugs': {
+      id: '/api/public/hooks/seed-drugs'
+      path: '/api/public/hooks/seed-drugs'
+      fullPath: '/api/public/hooks/seed-drugs'
+      preLoaderRoute: typeof ApiPublicHooksSeedDrugsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +115,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DrugSlugRoute: DrugSlugRoute,
   LiveTermRoute: LiveTermRoute,
+  ApiPublicHooksSeedDrugsRoute: ApiPublicHooksSeedDrugsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
