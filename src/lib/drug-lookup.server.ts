@@ -249,10 +249,10 @@ function excretionPercents(scope: string): { renal: number; fecal: number } | nu
     else fecal = Math.max(fecal, pct);
   };
   // "Feces 34%" (table form) and "86% ... recovered in feces" (prose form)
-  for (const m of scope.matchAll(new RegExp(`\\b${route}\\b[^.;\\n%]{0,40}?${pctNum}`, "gi"))) {
+  for (const m of scope.matchAll(new RegExp(`\\b${route}\\b[^.;\\n%]{0,12}?${pctNum}`, "gi"))) {
     add(m[1], m[2]);
   }
-  for (const m of scope.matchAll(new RegExp(`${pctNum}[^.;\\n%]{0,60}?\\b${route}\\b`, "gi"))) {
+  for (const m of scope.matchAll(new RegExp(`${pctNum}[^.;\\n%]{0,25}?\\b${route}\\b`, "gi"))) {
     add(m[2], m[1]);
   }
   return renal || fecal ? { renal, fecal } : null;
