@@ -21,13 +21,13 @@ export type Database = {
           clinical_notes: string[]
           created_at: string
           drug_class: string
-          elimination: string
-          half_life_hours: number
+          elimination: string | null
+          half_life_hours: number | null
           id: string
           indication: string
           mechanism: string
           metabolism_enzymes: string[]
-          metabolism_organ: string
+          metabolism_organ: string | null
           name: string
           onset_minutes: number
           peak_minutes: number
@@ -46,13 +46,13 @@ export type Database = {
           clinical_notes?: string[]
           created_at?: string
           drug_class: string
-          elimination: string
-          half_life_hours: number
+          elimination?: string | null
+          half_life_hours?: number | null
           id?: string
           indication: string
           mechanism: string
           metabolism_enzymes?: string[]
-          metabolism_organ: string
+          metabolism_organ?: string | null
           name: string
           onset_minutes: number
           peak_minutes: number
@@ -71,13 +71,13 @@ export type Database = {
           clinical_notes?: string[]
           created_at?: string
           drug_class?: string
-          elimination?: string
-          half_life_hours?: number
+          elimination?: string | null
+          half_life_hours?: number | null
           id?: string
           indication?: string
           mechanism?: string
           metabolism_enzymes?: string[]
-          metabolism_organ?: string
+          metabolism_organ?: string | null
           name?: string
           onset_minutes?: number
           peak_minutes?: number

@@ -1,4 +1,4 @@
-import type { Drug } from "@/lib/drugs-data";
+import { NOT_AVAILABLE, type Drug } from "@/lib/drugs-data";
 import { SourceBadge } from "@/components/source-badge";
 
 interface Props {
@@ -41,11 +41,24 @@ export function DrugInfoPanel({ drug }: Props) {
           <PKField label="Route" value={drug.route.toUpperCase()} />
           <PKField label="Onset" value={fmtMinutes(drug.onsetMinutes)} />
           <PKField label="Peak" value={fmtMinutes(drug.peakMinutes)} />
-          <PKField label="t½" value={`${drug.halfLifeHours} h`} />
-          <PKField label="Metabolism" value={drug.metabolism.enzymes.join(", ")} />
+          <PKField
+            label="t½"
+            value={drug.halfLifeHours === null ? null : `${drug.halfLifeHours} h`}
+          />
+          <PKField
+            label="Metabolism"
+            value={
+              drug.metabolism.enzymes.length
+                ? drug.metabolism.enzymes.join(", ")
+                : drug.metabolism.organ
+                  ? `${drug.metabolism.organ} (enzymes not stated)`
+                  : null
+            }
+          />
           <PKField label="Elimination" value={drug.elimination} />
         </dl>
       </Section>
+
 
       <Section title="Typical dose">
         <p className="font-mono text-sm text-foreground/90">{drug.typicalDose}</p>
@@ -90,11 +103,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function PKField({ label, value }: { label: string; value: string }) {
+function PKField({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
       <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-foreground">{value}</dd>
+      {value ? (
+        <dd className="mt-0.5 text-foreground">{value}</dd>
+      ) : (
+        <dd className="mt-0.5 italic text-muted-foreground/80">{NOT_AVAILABLE}</dd>
+      )}
     </div>
   );
 }

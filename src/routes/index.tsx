@@ -494,8 +494,9 @@ function Library() {
                         {d.indication}
                       </p>
                       <div className="mt-4 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                        <span>t½ {d.halfLifeHours}h</span>
-                        <span>{d.elimination}</span>
+                        <span>{d.halfLifeHours === null ? "t½ n/a" : `t½ ${d.halfLifeHours}h`}</span>
+                        <span>{d.elimination ?? "route n/a"}</span>
+
                       </div>
                     </Link>
                   ))}

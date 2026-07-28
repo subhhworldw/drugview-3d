@@ -35,9 +35,12 @@ export interface Drug {
   targetOrgan: Organ;
   receptors: string[];
   mechanism: string;
-  metabolism: { organ: Organ; enzymes: string[] };
-  elimination: Elimination;
-  halfLifeHours: number;
+  /** organ is null when the label never states where the drug is metabolized */
+  metabolism: { organ: Organ | null; enzymes: string[] };
+  /** null when the FDA label doesn't describe an excretion route */
+  elimination: Elimination | null;
+  /** null when no half-life is stated in the structured label data */
+  halfLifeHours: number | null;
   onsetMinutes: number;
   peakMinutes: number;
   typicalDose: string;
@@ -45,6 +48,10 @@ export interface Drug {
   sourceUrl?: string;
   source: DrugSource;
 }
+
+/** Shown wherever a PK value genuinely isn't in the source data. */
+export const NOT_AVAILABLE = "Not available in structured data";
+
 
 export type DrugSource = "curated" | "api_cache";
 
@@ -76,11 +83,12 @@ export function rowToDrug(r: DrugRowLike): Drug {
     receptors: r.receptors,
     mechanism: r.mechanism,
     metabolism: {
-      organ: r.metabolism_organ as Organ,
-      enzymes: r.metabolism_enzymes,
+      organ: (r.metabolism_organ as Organ | null) ?? null,
+      enzymes: r.metabolism_enzymes ?? [],
     },
-    elimination: r.elimination as Elimination,
-    halfLifeHours: Number(r.half_life_hours),
+    elimination: (r.elimination as Elimination | null) ?? null,
+    halfLifeHours: r.half_life_hours === null ? null : Number(r.half_life_hours),
+
     onsetMinutes: r.onset_minutes,
     peakMinutes: r.peak_minutes,
     typicalDose: r.typical_dose,
