@@ -86,11 +86,12 @@ export function rowToDrug(r: DrugRowLike): Drug {
     receptors: r.receptors,
     mechanism: r.mechanism,
     metabolism: {
-      organ: r.metabolism_organ as Organ,
-      enzymes: r.metabolism_enzymes,
+      organ: (r.metabolism_organ as Organ | null) ?? null,
+      enzymes: r.metabolism_enzymes ?? [],
     },
-    elimination: r.elimination as Elimination,
-    halfLifeHours: Number(r.half_life_hours),
+    elimination: (r.elimination as Elimination | null) ?? null,
+    halfLifeHours: r.half_life_hours === null ? null : Number(r.half_life_hours),
+
     onsetMinutes: r.onset_minutes,
     peakMinutes: r.peak_minutes,
     typicalDose: r.typical_dose,
