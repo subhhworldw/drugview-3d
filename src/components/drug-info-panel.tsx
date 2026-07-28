@@ -41,11 +41,24 @@ export function DrugInfoPanel({ drug }: Props) {
           <PKField label="Route" value={drug.route.toUpperCase()} />
           <PKField label="Onset" value={fmtMinutes(drug.onsetMinutes)} />
           <PKField label="Peak" value={fmtMinutes(drug.peakMinutes)} />
-          <PKField label="t½" value={`${drug.halfLifeHours} h`} />
-          <PKField label="Metabolism" value={drug.metabolism.enzymes.join(", ")} />
+          <PKField
+            label="t½"
+            value={drug.halfLifeHours === null ? null : `${drug.halfLifeHours} h`}
+          />
+          <PKField
+            label="Metabolism"
+            value={
+              drug.metabolism.enzymes.length
+                ? drug.metabolism.enzymes.join(", ")
+                : drug.metabolism.organ
+                  ? `${drug.metabolism.organ} (enzymes not stated)`
+                  : null
+            }
+          />
           <PKField label="Elimination" value={drug.elimination} />
         </dl>
       </Section>
+
 
       <Section title="Typical dose">
         <p className="font-mono text-sm text-foreground/90">{drug.typicalDose}</p>
