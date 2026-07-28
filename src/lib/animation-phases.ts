@@ -102,14 +102,21 @@ export function buildPhases(drug: Drug): Phase[] {
     color: "accent",
   });
 
-  // 5. Metabolism
+  // 5. Metabolism — the animation still needs somewhere to route the dose, but
+  // the copy stays honest when the label never named an organ or enzyme.
+  const metabOrgan: Organ = drug.metabolism.organ ?? "liver";
+  const enzymeText = drug.metabolism.enzymes.length
+    ? ` by ${drug.metabolism.enzymes.join(", ")}`
+    : "";
   phases.push({
     id: "metabolism",
     label: "Metabolism",
-    description: `Processed in ${humanizeOrgan(drug.metabolism.organ)} by ${drug.metabolism.enzymes.join(", ")}.`,
+    description: drug.metabolism.organ
+      ? `Processed in ${humanizeOrgan(metabOrgan)}${enzymeText}.`
+      : `Metabolic site isn't stated in the structured label data${enzymeText ? `, though the label mentions${enzymeText.replace(" by", "")}` : ""}.`,
     duration: 3.5,
     fromOrgan: drug.targetOrgan,
-    toOrgan: drug.metabolism.organ,
+    toOrgan: metabOrgan,
     color: "accent",
   });
 
@@ -125,12 +132,15 @@ export function buildPhases(drug: Drug): Phase[] {
   phases.push({
     id: "elimination",
     label: "Elimination",
-    description: `Excreted primarily via ${drug.elimination} route.`,
+    description: drug.elimination
+      ? `Excreted primarily via ${drug.elimination} route.`
+      : "Excretion route isn't stated in the structured label data.",
     duration: 3,
-    fromOrgan: drug.metabolism.organ,
+    fromOrgan: metabOrgan,
     toOrgan: elimOrgan,
     color: "destructive",
   });
+
 
   return phases;
 }
