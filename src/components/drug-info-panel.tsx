@@ -1,4 +1,4 @@
-import type { Drug } from "@/lib/drugs-data";
+import { NOT_AVAILABLE, type Drug } from "@/lib/drugs-data";
 import { SourceBadge } from "@/components/source-badge";
 
 interface Props {
@@ -103,11 +103,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-function PKField({ label, value }: { label: string; value: string }) {
+function PKField({ label, value }: { label: string; value: string | null }) {
   return (
     <div>
       <dt className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 text-foreground">{value}</dd>
+      {value ? (
+        <dd className="mt-0.5 text-foreground">{value}</dd>
+      ) : (
+        <dd className="mt-0.5 italic text-muted-foreground/80">{NOT_AVAILABLE}</dd>
+      )}
     </div>
   );
 }
