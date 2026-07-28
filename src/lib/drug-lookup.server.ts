@@ -220,8 +220,37 @@ export function extractHalfLifeHours(text: string): number | null {
     if (hours <= 0 || hours > 24 * 365) continue;
     return Math.round(hours * 100) / 100;
   }
+
+  const tm = text.match(tableRe);
+  if (tm) {
+    const factor = UNIT_TO_HOURS[tm[1].toLowerCase()];
+    const value = parseFloat(tm[2].replace(",", "."));
+    if (factor && isFinite(value)) {
+      const hours = value * factor;
+      if (hours > 0 && hours <= 24 * 365) return Math.round(hours * 100) / 100;
+    }
+  }
   return null;
 }
+
+/**
+ * Recovered percentages per excretion route, e.g. "Feces 34% ... Urine 0.02%".
+ * Labels state these as tables, where keyword counting is meaningless.
+ */
+function excretionPercents(scope: string): { renal: number; fecal: number } | null {
+  let renal = 0;
+  let fecal = 0;
+  for (const m of scope.matchAll(
+    /\b(urine|urinary|feces|faeces|fecal|faecal|bile|biliary)\b[^.;\n%]{0,40}?(\d+(?:\.\d+)?)\s*%/gi,
+  )) {
+    const pct = parseFloat(m[2]);
+    if (!isFinite(pct) || pct > 100) continue;
+    if (/^u/i.test(m[1])) renal = Math.max(renal, pct);
+    else fecal = Math.max(fecal, pct);
+  }
+  return renal || fecal ? { renal, fecal } : null;
+}
+
 
 /** Narrow the text to the Excretion/Elimination subsection when the label has one. */
 function excretionScope(text: string): string {
