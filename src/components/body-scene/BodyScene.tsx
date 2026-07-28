@@ -9,6 +9,9 @@ import {
   makeTorsoGeometry,
   makeHeadGeometry,
   makeLimbGeometry,
+  makeHandGeometry,
+  makeFootGeometry,
+  makeJointGeometry,
   makeHeartLobeGeometry,
   makeHeartApexGeometry,
   makeLungGeometry,
@@ -38,9 +41,14 @@ interface Props {
 const G = {
   torso: makeTorsoGeometry(),
   head: makeHeadGeometry(),
-  arm: makeLimbGeometry(0.16, 0.12, 0.085, 1.95),
-  leg: makeLimbGeometry(0.26, 0.18, 0.11, 2.1),
-  hips: makeBlobGeometry(5.2, 3.0, 3.0),
+  arm: makeLimbGeometry(0.155, 0.105, 0.062, 2.55),
+  leg: makeLimbGeometry(0.27, 0.175, 0.088, 2.36),
+  hand: makeHandGeometry(),
+  foot: makeFootGeometry(),
+  shoulderCap: makeJointGeometry(0.185),
+  elbowCap: makeJointGeometry(0.105),
+  kneeCap: makeJointGeometry(0.155),
+  ankleCap: makeJointGeometry(0.095),
   heartLobe: makeHeartLobeGeometry(),
   heartApex: makeHeartApexGeometry(),
   lungL: makeLungGeometry(-1),
@@ -93,31 +101,50 @@ const ORGAN_COLORS: Record<string, string> = {
 // A stylized human body composed from procedural geometry + highlighted organs.
 function Body({ activeOrgan }: { activeOrgan: string }) {
   const isDark = useIsDark();
+  // Skin shell: warm subsurface-ish tissue rather than flat plastic. Physical
+  // material gives us sheen (soft velvety falloff at grazing angles) and a
+  // touch of transmission, while alpha blending guarantees the organs stay
+  // visible through it — that layered read is the whole point of the model.
   const bodyMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color("#4a7a8c"),
-        emissive: new THREE.Color(isDark ? "#1d4152" : "#000000"),
-        emissiveIntensity: isDark ? 1 : 0,
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(isDark ? "#e8a888" : "#e6a184"),
+        emissive: new THREE.Color(isDark ? "#3a1d16" : "#000000"),
+        emissiveIntensity: isDark ? 0.6 : 0,
         transparent: true,
-        opacity: isDark ? 0.17 : 0.11,
-        roughness: 0.4,
+        opacity: isDark ? 0.26 : 0.2,
+        roughness: 0.62,
+        metalness: 0,
+        clearcoat: 0.35,
+        clearcoatRoughness: 0.6,
+        sheen: 1,
+        sheenRoughness: 0.75,
+        sheenColor: new THREE.Color(isDark ? "#ffd2b4" : "#ffbfa0"),
+        transmission: 0.18,
+        thickness: 0.9,
+        ior: 1.38,
+        attenuationColor: new THREE.Color("#c86a4a"),
+        attenuationDistance: 1.6,
         depthWrite: false,
         side: THREE.DoubleSide,
       }),
     [isDark],
   );
-  // Slightly stronger material for the surface muscle relief so the
-  // segmentation reads as raised panels without hiding the organs.
+  // Surface muscle relief: same tissue family, a shade deeper and more opaque
+  // so the segmentation reads as raised bellies under the skin.
   const muscleMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
-        color: new THREE.Color(isDark ? "#68a2b5" : "#3f7185"),
-        emissive: new THREE.Color(isDark ? "#24576b" : "#000000"),
-        emissiveIntensity: isDark ? 1 : 0,
+      new THREE.MeshPhysicalMaterial({
+        color: new THREE.Color(isDark ? "#c4685c" : "#b3564c"),
+        emissive: new THREE.Color(isDark ? "#3d1512" : "#000000"),
+        emissiveIntensity: isDark ? 0.55 : 0,
         transparent: true,
-        opacity: isDark ? 0.3 : 0.22,
-        roughness: 0.55,
+        opacity: isDark ? 0.34 : 0.26,
+        roughness: 0.72,
+        metalness: 0,
+        sheen: 0.8,
+        sheenRoughness: 0.85,
+        sheenColor: new THREE.Color("#ff9b86"),
         depthWrite: false,
         side: THREE.DoubleSide,
       }),
@@ -129,29 +156,41 @@ function Body({ activeOrgan }: { activeOrgan: string }) {
       {/* Head + neck + torso silhouette (lathed profile) */}
       <mesh position={[0, 3.2, 0]} geometry={G.head} material={bodyMat} />
       <mesh position={[0, 0.4, 0]} geometry={G.torso} material={bodyMat} />
-      {/* Pelvis */}
-      <mesh position={[0, -0.55, 0]} geometry={G.hips} material={bodyMat} />
-      {/* Arms */}
-      <mesh position={[0.92, 1.15, 0]} rotation={[0, 0, 0.12]} geometry={G.arm} material={bodyMat} />
-      <mesh
-        position={[-0.92, 1.15, 0]}
-        rotation={[0, 0, -0.12]}
-        geometry={G.arm}
-        material={bodyMat}
-      />
-      {/* Legs */}
-      <mesh
-        position={[0.34, -1.6, 0]}
-        rotation={[0, 0, 0.03]}
-        geometry={G.leg}
-        material={bodyMat}
-      />
-      <mesh
-        position={[-0.34, -1.6, 0]}
-        rotation={[0, 0, -0.03]}
-        geometry={G.leg}
-        material={bodyMat}
-      />
+
+      {/* Arms — rounded shoulder caps, tapered limbs, mitten hands */}
+      {[1, -1].map((sx) => (
+        <group key={`arm${sx}`}>
+          <mesh position={[sx * 0.86, 1.9, 0]} geometry={G.shoulderCap} material={bodyMat} />
+          <mesh
+            position={[sx * 0.9, 0.675, 0]}
+            rotation={[0, 0, sx * 0.09]}
+            geometry={G.arm}
+            material={bodyMat}
+          />
+          <mesh position={[sx * 1.0, 0.75, 0]} geometry={G.elbowCap} material={bodyMat} />
+          <mesh
+            position={[sx * 1.02, -0.68, 0.01]}
+            rotation={[0, 0, sx * 0.09]}
+            geometry={G.hand}
+            material={bodyMat}
+          />
+        </group>
+      ))}
+
+      {/* Legs — knee/ankle capsules and rounded feet */}
+      {[1, -1].map((sx) => (
+        <group key={`leg${sx}`}>
+          <mesh
+            position={[sx * 0.34, -1.6, 0]}
+            rotation={[0, 0, sx * 0.03]}
+            geometry={G.leg}
+            material={bodyMat}
+          />
+          <mesh position={[sx * 0.37, -1.53, 0.01]} geometry={G.kneeCap} material={bodyMat} />
+          <mesh position={[sx * 0.39, -2.72, 0]} geometry={G.ankleCap} material={bodyMat} />
+          <mesh position={[sx * 0.39, -2.86, 0.09]} geometry={G.foot} material={bodyMat} />
+        </group>
+      ))}
 
       <SurfaceMuscles material={muscleMat} />
 
@@ -183,37 +222,37 @@ function SurfaceMuscles({ material }: { material: THREE.Material }) {
   return (
     <group>
       {/* Pectorals */}
-      <mesh position={[0.29, 1.72, 0.31]} rotation={[0, 0, -0.16]} geometry={G.pec} material={material} />
-      <mesh position={[-0.29, 1.72, 0.31]} rotation={[0, 0, 0.16]} geometry={G.pec} material={material} />
+      <mesh position={[0.28, 1.74, 0.40]} rotation={[0, 0, -0.16]} geometry={G.pec} material={material} />
+      <mesh position={[-0.28, 1.74, 0.40]} rotation={[0, 0, 0.16]} geometry={G.pec} material={material} />
       {/* Sternum / linea alba midline */}
-      <mesh position={[0, 1.05, 0.33]} geometry={G.midline} material={material} />
+      <mesh position={[0, 1.06, 0.31]} geometry={G.midline} material={material} />
       {/* Abdominal segmentation */}
       {[1.2, 0.94, 0.68].map((y, row) =>
         [-1, 1].map((sx) => (
           <mesh
             key={`${row}-${sx}`}
-            position={[sx * 0.155, y, 0.315 - row * 0.012]}
+            position={[sx * 0.15, y, 0.30 - row * 0.012]}
             geometry={G.abPanel}
             material={material}
           />
         )),
       )}
       {/* Obliques */}
-      <mesh position={[0.35, 0.9, 0.22]} rotation={[0, 0.5, 0.12]} geometry={G.obliquePanel} material={material} />
-      <mesh position={[-0.35, 0.9, 0.22]} rotation={[0, -0.5, -0.12]} geometry={G.obliquePanel} material={material} />
+      <mesh position={[0.34, 0.92, 0.2]} rotation={[0, 0.5, 0.12]} geometry={G.obliquePanel} material={material} />
+      <mesh position={[-0.34, 0.92, 0.2]} rotation={[0, -0.5, -0.12]} geometry={G.obliquePanel} material={material} />
       {/* Deltoids */}
-      <mesh position={[0.89, 1.92, 0]} geometry={G.deltoid} material={material} />
-      <mesh position={[-0.89, 1.92, 0]} geometry={G.deltoid} material={material} />
+      <mesh position={[0.88, 1.9, 0]} geometry={G.deltoid} material={material} />
+      <mesh position={[-0.88, 1.9, 0]} geometry={G.deltoid} material={material} />
       {/* Biceps + forearm definition */}
-      <mesh position={[0.96, 1.42, 0.06]} rotation={[0, 0, 0.12]} geometry={G.biceps} material={material} />
-      <mesh position={[-0.96, 1.42, 0.06]} rotation={[0, 0, -0.12]} geometry={G.biceps} material={material} />
-      <mesh position={[1.04, 0.72, 0.05]} rotation={[0, 0, 0.12]} geometry={G.forearm} material={material} />
-      <mesh position={[-1.04, 0.72, 0.05]} rotation={[0, 0, -0.12]} geometry={G.forearm} material={material} />
+      <mesh position={[0.97, 1.19, 0.05]} rotation={[0, 0, 0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[-0.97, 1.19, 0.05]} rotation={[0, 0, -0.12]} geometry={G.biceps} material={material} />
+      <mesh position={[1.05, 0.32, 0.04]} rotation={[0, 0, 0.12]} geometry={G.forearm} material={material} />
+      <mesh position={[-1.05, 0.32, 0.04]} rotation={[0, 0, -0.12]} geometry={G.forearm} material={material} />
       {/* Quadriceps + calves */}
-      <mesh position={[0.37, -1.18, 0.1]} geometry={G.quad} material={material} />
-      <mesh position={[-0.37, -1.18, 0.1]} geometry={G.quad} material={material} />
-      <mesh position={[0.35, -2.0, -0.05]} geometry={G.calf} material={material} />
-      <mesh position={[-0.35, -2.0, -0.05]} geometry={G.calf} material={material} />
+      <mesh position={[0.36, -1.13, 0.09]} geometry={G.quad} material={material} />
+      <mesh position={[-0.36, -1.13, 0.09]} geometry={G.quad} material={material} />
+      <mesh position={[0.38, -1.95, -0.05]} geometry={G.calf} material={material} />
+      <mesh position={[-0.38, -1.95, -0.05]} geometry={G.calf} material={material} />
     </group>
   );
 }
@@ -399,9 +438,18 @@ function Scene({ drug, time }: { drug: Drug; time: number }) {
 
   return (
     <>
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[5, 5, 5]} intensity={0.8} />
-      <directionalLight position={[-5, 3, -5]} intensity={0.3} color="#5accd7" />
+      {/* Three-point setup: warm key, cool fill, hard rim for silhouette read */}
+      <ambientLight intensity={0.32} />
+      <hemisphereLight args={["#bfd8e6", "#3a2a24", 0.45]} />
+      <directionalLight
+        position={[5, 7, 6]}
+        intensity={2.1}
+        color="#fff1e2"
+        castShadow={false}
+      />
+      <directionalLight position={[-6, 1.5, 4]} intensity={0.75} color="#9fc6dd" />
+      <directionalLight position={[-1.5, 4, -7]} intensity={1.9} color="#ffd9c2" />
+      <pointLight position={[0, 1.2, 2.6]} intensity={6} distance={9} decay={2} color="#ffe6d2" />
       <Body activeOrgan={phase.toOrgan} />
       <DrugParticles from={from} to={to} color={colorMap[phase.color]} progress={localT} />
     </>
