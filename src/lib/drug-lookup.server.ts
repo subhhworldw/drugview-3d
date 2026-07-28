@@ -125,7 +125,171 @@ interface FdaLabel {
   pharmacokinetics?: string[];
   clinical_pharmacology?: string[];
   dosage_and_administration?: string[];
+  // openFDA does not reliably split these out — labels usually nest
+  // Absorption/Distribution/Metabolism/Excretion inside `pharmacokinetics`.
+  // They're declared anyway because a minority of SPLs do emit them.
+  metabolism?: string[];
+  excretion?: string[];
+  description?: string[];
 }
+
+/* ------------------------------------------------------------------ */
+/* ADMET extraction from free-text FDA label sections                  */
+/* ------------------------------------------------------------------ */
+
+export interface PkFacts {
+  halfLifeHours: number | null;
+  elimination: "renal" | "hepatic" | "biliary" | "mixed" | "pulmonary" | null;
+  enzymes: string[];
+  metabolismOrgan: "liver" | null;
+}
+
+/** Concatenated PK-relevant label text, normalized to single spaces. */
+function pkText(label: FdaLabel | null): string {
+  if (!label) return "";
+  return [
+    label.pharmacokinetics?.[0],
+    label.clinical_pharmacology?.[0],
+    label.metabolism?.[0],
+    label.excretion?.[0],
+  ]
+    .filter(Boolean)
+    .join("\n\n")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+/g, " ");
+}
+
+const UNIT_TO_HOURS: Record<string, number> = {
+  hour: 1,
+  hours: 1,
+  hr: 1,
+  hrs: 1,
+  h: 1,
+  minute: 1 / 60,
+  minutes: 1 / 60,
+  min: 1 / 60,
+  mins: 1 / 60,
+  day: 24,
+  days: 24,
+  week: 168,
+  weeks: 168,
+};
+
+/**
+ * Pull a terminal/elimination half-life out of label prose.
+ * Handles "half-life of approximately 14 hours", "half-life is 2 to 4 hours",
+ * "half-life (t1/2) of 30 min", "t1/2 = 6.5 h", and en-dash ranges.
+ */
+export function extractHalfLifeHours(text: string): number | null {
+  if (!text) return null;
+  const unit = "(hours?|hrs?|h|minutes?|mins?|days?|weeks?)";
+  const num = "(\\d+(?:[.,]\\d+)?)";
+  // Up to ~120 chars of qualifiers ("of approximately", "in healthy adults is")
+  // may sit between the phrase and the number, but never a sentence boundary.
+  const gap = "[^.;\\n]{0,120}?";
+  const patterns = [
+    // range: "half-life of 20 to 30 hours" / "20-30 hours"
+    new RegExp(
+      `(?:half[-\\s]?life|t\\s?1?\\s?/\\s?2|t½)${gap}${num}\\s*(?:to|-|–|—|and)\\s*${num}\\s*${unit}\\b`,
+      "i",
+    ),
+    // single value: "half-life of approximately 14 hours"
+    new RegExp(`(?:half[-\\s]?life|t\\s?1?\\s?/\\s?2|t½)${gap}${num}\\s*${unit}\\b`, "i"),
+  ];
+
+  for (const re of patterns) {
+    const m = text.match(re);
+    if (!m) continue;
+    const isRange = m.length === 5;
+    const lo = parseFloat(m[1].replace(",", "."));
+    const hi = isRange ? parseFloat(m[2].replace(",", ".")) : lo;
+    const factor = UNIT_TO_HOURS[(isRange ? m[3] : m[2]).toLowerCase()];
+    if (!factor || !isFinite(lo) || !isFinite(hi)) continue;
+    // midpoint of a stated range, otherwise the stated value
+    const hours = ((lo + hi) / 2) * factor;
+    // sanity window: sub-second or multi-year values are parse noise
+    if (hours <= 0 || hours > 24 * 365) continue;
+    return Math.round(hours * 100) / 100;
+  }
+  return null;
+}
+
+/** Narrow the text to the Excretion/Elimination subsection when the label has one. */
+function excretionScope(text: string): string {
+  const m = text.match(/\b(?:Excretion|Elimination)\b([\s\S]{0,2500})/i);
+  return m ? m[1] : text;
+}
+
+/**
+ * Classify the dominant excretion route. Returns null when the label never
+ * says — we do not guess.
+ */
+export function extractElimination(text: string): PkFacts["elimination"] {
+  if (!text) return null;
+  const scope = excretionScope(text);
+  const count = (re: RegExp) => (scope.match(re) ?? []).length;
+
+  const renal = count(/\b(urine|urinary|renal(?:ly)?\s+(?:excret|elimin|clear)\w*|kidneys?)\b/gi);
+  const fecal = count(/\b(feces|faeces|fecal|faecal|bile|biliary|hepatobiliary)\b/gi);
+  const pulmonary = count(/\b(exhaled|expired air|pulmonary excretion|via the lungs)\b/gi);
+
+  if (pulmonary > 0 && pulmonary >= renal && pulmonary >= fecal) return "pulmonary";
+  if (renal === 0 && fecal === 0) return null;
+  if (renal > 0 && fecal > 0) {
+    const ratio = Math.min(renal, fecal) / Math.max(renal, fecal);
+    // both routes described with comparable emphasis → genuinely mixed
+    if (ratio >= 0.34) return "mixed";
+  }
+  return renal > fecal ? "renal" : "biliary";
+}
+
+/** CYP / UGT / other named metabolizing enzymes mentioned in the label. */
+export function extractEnzymes(text: string): string[] {
+  if (!text) return [];
+  const out = new Set<string>();
+  for (const m of text.matchAll(/\bCYP\s?-?\s?([1-9][A-Z]{1,2}\d{0,2})\b/gi)) {
+    out.add(`CYP${m[1].toUpperCase()}`);
+  }
+  for (const m of text.matchAll(/\bUGT\s?([1-2][AB]\d{1,2})\b/gi)) {
+    out.add(`UGT${m[1].toUpperCase()}`);
+  }
+  for (const [re, name] of [
+    [/\bP-?glycoprotein\b|\bP-?gp\b/i, "P-gp"],
+    [/\bmonoamine oxidase\b|\bMAO-[AB]\b/i, "MAO"],
+    [/\bxanthine oxidase\b/i, "Xanthine oxidase"],
+    [/\bcarboxylesterase\b/i, "Carboxylesterase"],
+    [/\bcatechol-O-methyltransferase\b|\bCOMT\b/i, "COMT"],
+    [/\balcohol dehydrogenase\b/i, "Alcohol dehydrogenase"],
+    [/\bthiopurine methyltransferase\b|\bTPMT\b/i, "TPMT"],
+  ] as Array<[RegExp, string]>) {
+    if (re.test(text)) out.add(name);
+  }
+  return Array.from(out).slice(0, 8);
+}
+
+/** Only claim hepatic metabolism when the label actually describes it. */
+export function extractMetabolismOrgan(text: string, enzymes: string[]): "liver" | null {
+  if (enzymes.some((e) => e.startsWith("CYP") || e.startsWith("UGT"))) return "liver";
+  if (!text) return null;
+  return /\b(hepatic(?:ally)?\s+metaboli|metaboli\w+\s+(?:in|by)\s+the\s+liver|hepatocytes?|first-?pass\s+metabolism|hepatic\s+microsom)/i.test(
+    text,
+  )
+    ? "liver"
+    : null;
+}
+
+/** Full ADMET fact extraction for one FDA label. */
+export function extractPkFacts(label: FdaLabel | null): PkFacts {
+  const text = pkText(label);
+  const enzymes = extractEnzymes(text);
+  return {
+    halfLifeHours: extractHalfLifeHours(text),
+    elimination: extractElimination(text),
+    enzymes,
+    metabolismOrgan: extractMetabolismOrgan(text, enzymes),
+  };
+}
+
 
 export async function openFdaLabel(name: string): Promise<FdaLabel | null> {
   // Strip quotes/backslashes so the value can't break out of the quoted term.
