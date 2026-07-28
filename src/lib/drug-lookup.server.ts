@@ -272,7 +272,23 @@ export function extractElimination(text: string): PkFacts["elimination"] {
   const pulmonary = count(/\b(exhaled|expired air|pulmonary excretion|via the lungs)\b/gi);
 
   if (pulmonary > 0 && pulmonary >= renal && pulmonary >= fecal) return "pulmonary";
+
+  // Stated recovery percentages beat keyword frequency when the label has them.
+  const pct = excretionPercents(scope);
+  if (pct) {
+    const { renal: r, fecal: f } = pct;
+    if (r && f) {
+      const hi = Math.max(r, f);
+      const lo = Math.min(r, f);
+      if (lo / hi >= 0.34) return "mixed";
+      return r > f ? "renal" : "biliary";
+    }
+    if (r) return "renal";
+    if (f) return "biliary";
+  }
+
   if (renal === 0 && fecal === 0) return null;
+
   if (renal > 0 && fecal > 0) {
     const ratio = Math.min(renal, fecal) / Math.max(renal, fecal);
     // both routes described with comparable emphasis → genuinely mixed
