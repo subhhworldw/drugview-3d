@@ -346,6 +346,10 @@ export function buildCachedDrugRow(
 
   const absorptionSite = route === "oral" ? "small_intestine" : route === "inhaled" ? "lungs" : "vessels";
 
+  // Real per-drug ADMET, parsed from the label. Anything the label doesn't
+  // state stays null/empty — we never substitute a plausible-looking default.
+  const pk = extractPkFacts(label);
+
   return {
     slug: slugify(displayName),
     name: displayName,
@@ -358,10 +362,11 @@ export function buildCachedDrugRow(
     target_organ: "vessels",
     receptors,
     mechanism,
-    metabolism_organ: "liver",
-    metabolism_enzymes: ["Not specified"],
-    elimination: "mixed",
-    half_life_hours: 6,
+    metabolism_organ: pk.metabolismOrgan,
+    metabolism_enzymes: pk.enzymes,
+    elimination: pk.elimination,
+    half_life_hours: pk.halfLifeHours,
+
     onset_minutes: route === "iv" ? 2 : 30,
     peak_minutes: route === "iv" ? 10 : 90,
     typical_dose: label?.dosage_and_administration?.[0]
