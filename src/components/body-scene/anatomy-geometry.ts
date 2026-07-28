@@ -10,67 +10,145 @@ function v2(x: number, y: number) {
   return new THREE.Vector2(x, y);
 }
 
-/** Smooth human-ish silhouette (head → neck → shoulders → waist → hips) as a lathe. */
+/**
+ * Smooth human silhouette as a lathe: hips → narrow waist → chest → rounded
+ * shoulders → neck. Sampled densely so the profile reads as a continuous curve
+ * rather than a stack of facets.
+ */
 export function makeTorsoGeometry() {
   // profile points: [radius, height]
   const raw: Array<[number, number]> = [
-    [0.0, -0.95],
-    [0.55, -0.9],
-    [0.68, -0.6],
-    [0.7, -0.25],
-    [0.6, 0.15],
-    [0.55, 0.5],
-    [0.62, 0.95],
-    [0.75, 1.35],
-    [0.84, 1.62],
-    [0.68, 1.78],
-    [0.34, 1.86],
-    [0.19, 2.02],
-    [0.17, 2.24],
-    [0.0, 2.3],
+    [0.0, -0.6],
+    [0.36, -0.58],
+    [0.6, -0.5],
+    [0.7, -0.36],
+    [0.72, -0.2], // hips
+    [0.66, -0.02],
+    [0.57, 0.16],
+    [0.51, 0.32],
+    [0.49, 0.44], // waist — clearly narrower than shoulders and hips
+    [0.51, 0.6],
+    [0.57, 0.85],
+    [0.65, 1.1],
+    [0.73, 1.32],
+    [0.8, 1.5],
+    [0.845, 1.63],
+    [0.85, 1.72], // rounded shoulder shelf, not a blocky corner
+    [0.8, 1.8],
+    [0.66, 1.87],
+    [0.46, 1.93],
+    [0.3, 1.98],
+    [0.21, 2.08],
+    [0.185, 2.2],
+    [0.19, 2.32],
+    [0.14, 2.4],
+    [0.0, 2.44],
   ];
   const curve = new THREE.SplineCurve(raw.map(([r, h]) => v2(r, h)));
-  const pts = curve.getPoints(28).map((p) => v2(Math.max(p.x, 0.001), p.y));
-  const geo = new THREE.LatheGeometry(pts, 32);
+  const pts = curve.getPoints(96).map((p) => v2(Math.max(p.x, 0.001), p.y));
+  const geo = new THREE.LatheGeometry(pts, 72);
   // flatten front-to-back so the torso reads as a human trunk, not a cylinder
-  geo.scale(1, 1, 0.55);
+  geo.scale(1, 1, 0.58);
+  geo.computeVertexNormals();
   return geo;
 }
 
 /** Head: slightly egg-shaped ellipsoid with a hint of a jaw. */
 export function makeHeadGeometry() {
-  const geo = new THREE.SphereGeometry(0.42, 24, 20);
-  geo.scale(0.82, 1.15, 0.92);
+  const geo = new THREE.SphereGeometry(0.4, 40, 32);
+  geo.scale(0.8, 1.1, 0.9);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) {
     const y = pos.getY(i);
     if (y < 0) {
-      const k = 1 + y * 0.18; // taper the chin
+      const k = 1 + y * 0.2; // taper the chin
       pos.setX(i, pos.getX(i) * k);
       pos.setZ(i, pos.getZ(i) * k);
     }
+    // slight occipital bulge at the back of the skull
+    const z = pos.getZ(i);
+    if (z < 0 && y > -0.05) pos.setZ(i, z * 1.06);
   }
   geo.computeVertexNormals();
   return geo;
 }
 
-/** Tapered limb (upper→lower) built as a lathe, so it swells at the muscle belly. */
+/**
+ * Anatomical limb: swells at the proximal joint, tucks slightly at the mid
+ * joint (elbow/knee), swells again over the muscle belly and tapers down to a
+ * slim wrist/ankle. `length` runs top → bottom, geometry is centred on origin.
+ */
 export function makeLimbGeometry(topR: number, midR: number, botR: number, length: number) {
+  const L = length;
   const raw: Array<[number, number]> = [
     [0.001, 0],
-    [topR * 0.9, 0.02],
-    [topR, length * 0.12],
-    [midR, length * 0.45],
-    [botR * 1.05, length * 0.8],
-    [botR, length * 0.97],
-    [0.001, length],
+    [topR * 0.72, 0.012 * L],
+    [topR * 1.0, 0.07 * L], // shoulder / hip mass
+    [topR * 0.96, 0.16 * L],
+    [midR * 1.16, 0.3 * L], // biceps / quad belly
+    [midR * 0.9, 0.47 * L], // elbow / knee tuck
+    [midR * 0.98, 0.53 * L], // joint capsule
+    [botR * 1.42, 0.64 * L], // forearm / calf belly
+    [botR * 1.12, 0.82 * L],
+    [botR * 0.92, 0.94 * L], // wrist / ankle
+    [botR * 0.8, 0.985 * L],
+    [0.001, L],
   ];
   const curve = new THREE.SplineCurve(raw.map(([r, h]) => v2(r, h)));
-  const pts = curve.getPoints(16).map((p) => v2(Math.max(p.x, 0.001), p.y));
-  const geo = new THREE.LatheGeometry(pts, 16);
+  const pts = curve.getPoints(64).map((p) => v2(Math.max(p.x, 0.001), p.y));
+  const geo = new THREE.LatheGeometry(pts, 32);
   geo.translate(0, -length / 2, 0);
+  geo.computeVertexNormals();
   return geo;
 }
+
+/** Rounded mitten-style hand: soft palm mass, no boxy end cap. */
+export function makeHandGeometry() {
+  const geo = new THREE.SphereGeometry(0.13, 24, 20);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    const t = (v.y + 0.13) / 0.26; // 0 fingertips → 1 wrist
+    const taper = 0.6 + 0.5 * Math.sin(Math.PI * Math.min(1, t * 0.9 + 0.1));
+    v.x *= taper;
+    v.z *= taper;
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.scale(0.78, 1.9, 0.42);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Rounded foot: heel mass rolling forward into a soft toe box. */
+export function makeFootGeometry() {
+  const geo = new THREE.SphereGeometry(0.14, 24, 20);
+  const pos = geo.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    v.fromBufferAttribute(pos, i);
+    // arch: flatten the sole, keep the top rounded
+    if (v.y < 0) v.y *= 0.45;
+    // taper toward the toes (+z)
+    if (v.z > 0) {
+      const k = 1 - 0.35 * (v.z / 0.14);
+      v.x *= k;
+      v.y *= k;
+    }
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  geo.scale(0.72, 0.78, 1.7);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Soft rounded joint capsule used at shoulders, elbows, knees and ankles. */
+export function makeJointGeometry(r: number) {
+  const geo = new THREE.SphereGeometry(r, 20, 16);
+  geo.scale(1, 0.9, 0.85);
+  return geo;
+}
+
 
 /** Heart lobe: one of the two rounded upper chambers. */
 export function makeHeartLobeGeometry() {
