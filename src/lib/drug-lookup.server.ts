@@ -197,6 +197,15 @@ export function extractHalfLifeHours(text: string): number | null {
     new RegExp(`(?:half[-\\s]?life|t\\s?1?\\s?/\\s?2|t½)${gap}${num}\\s*${unit}\\b`, "i"),
   ];
 
+  // Flattened label tables put the unit in the row header and the value after
+  // it: "Half-life, hours [Mean (CV%)] 14.7 (33)". Handled separately because
+  // here the unit precedes the number.
+  const tableRe = new RegExp(
+    `(?:half[-\\s]?life|t\\s?1?\\s?/\\s?2|t½)\\s*[,(\\[]?\\s*${unit}\\b[^.;\\n]{0,60}?${num}`,
+    "i",
+  );
+
+
   for (const re of patterns) {
     const m = text.match(re);
     if (!m) continue;
