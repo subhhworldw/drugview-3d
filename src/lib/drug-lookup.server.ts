@@ -262,8 +262,13 @@ function excretionPercents(scope: string): { renal: number; fecal: number } | nu
 
 /** Narrow the text to the Excretion/Elimination subsection when the label has one. */
 function excretionScope(text: string): string {
-  const m = text.match(/\b(?:Excretion|Elimination)\b([\s\S]{0,2500})/i);
+  // Prefer an explicit "Excretion" heading; "Elimination" often appears first
+  // as a table row label with no route information under it.
+  const m =
+    text.match(/\bExcretion\b([\s\S]{0,2500})/i) ??
+    text.match(/\bElimination\b([\s\S]{0,2500})/i);
   return m ? m[1] : text;
+
 }
 
 /**
