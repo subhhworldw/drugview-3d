@@ -208,3 +208,29 @@ export function buildCachedDrugRow(
     source: "api_cache",
   };
 }
+
+/** Verified consumer-drug reference URL from MedlinePlus Connect (by RXCUI). Null when unavailable. */
+export async function medlinePlusUrl(rxcui: string): Promise<string | null> {
+  try {
+    const url =
+      "https://connect.medlineplus.gov/service?mainSearchCriteria.v.cs=2.16.840.1.113883.6.88" +
+      `&mainSearchCriteria.v.c=${encodeURIComponent(rxcui)}&knowledgeResponseType=application/json`;
+    const res = await fetch(url, {
+      headers: { accept: "application/json" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      feed?: { entry?: Array<{ link?: Array<{ href?: string; url?: string }> }> };
+    };
+    for (const entry of json.feed?.entry ?? []) {
+      for (const link of entry.link ?? []) {
+        const href = link.href ?? link.url;
+        if (href && href.includes("medlineplus.gov")) return href;
+      }
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
