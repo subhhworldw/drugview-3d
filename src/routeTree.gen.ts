@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LiveTermRouteImport } from './routes/live.$term'
 import { Route as DrugSlugRouteImport } from './routes/drug.$slug'
 import { Route as ApiPublicHooksSeedDrugsRouteImport } from './routes/api/public/hooks/seed-drugs'
 
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const ApiPublicHooksSeedDrugsRoute = ApiPublicHooksSeedDrugsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/drug/$slug': typeof DrugSlugRoute
   '/live/$term': typeof LiveTermRoute
   '/api/public/hooks/seed-drugs': typeof ApiPublicHooksSeedDrugsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/drug/$slug': typeof DrugSlugRoute
   '/live/$term': typeof LiveTermRoute
   '/api/public/hooks/seed-drugs': typeof ApiPublicHooksSeedDrugsRoute
@@ -50,6 +58,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/compare': typeof CompareRoute
   '/drug/$slug': typeof DrugSlugRoute
   '/live/$term': typeof LiveTermRoute
   '/api/public/hooks/seed-drugs': typeof ApiPublicHooksSeedDrugsRoute
@@ -58,14 +67,21 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/compare'
     | '/drug/$slug'
     | '/live/$term'
     | '/api/public/hooks/seed-drugs'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/drug/$slug' | '/live/$term' | '/api/public/hooks/seed-drugs'
+  to:
+    | '/'
+    | '/compare'
+    | '/drug/$slug'
+    | '/live/$term'
+    | '/api/public/hooks/seed-drugs'
   id:
     | '__root__'
     | '/'
+    | '/compare'
     | '/drug/$slug'
     | '/live/$term'
     | '/api/public/hooks/seed-drugs'
@@ -73,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CompareRoute: typeof CompareRoute
   DrugSlugRoute: typeof DrugSlugRoute
   LiveTermRoute: typeof LiveTermRoute
   ApiPublicHooksSeedDrugsRoute: typeof ApiPublicHooksSeedDrugsRoute
@@ -80,6 +97,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -113,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CompareRoute: CompareRoute,
   DrugSlugRoute: DrugSlugRoute,
   LiveTermRoute: LiveTermRoute,
   ApiPublicHooksSeedDrugsRoute: ApiPublicHooksSeedDrugsRoute,
