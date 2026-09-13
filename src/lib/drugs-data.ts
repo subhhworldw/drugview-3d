@@ -62,6 +62,23 @@ export function isGenericTarget(drug: Drug): boolean {
 
 type DrugRow = Tables<"drugs">;
 
+// The catalog is public by policy. Keep a publishable fallback so standalone
+// hosts such as Vercel can read it even when their build-time variables were
+// not configured. This key cannot bypass row-level security.
+const PUBLIC_CATALOG_URL = "https://ntjhpbnzyaxttkkpakqc.supabase.co";
+const PUBLIC_CATALOG_KEY = "sb_publishable_OasABkTxwmWT-q5S5UTR1g_NieriRzp";
+
+async function fetchPublicRows(query: string): Promise<DrugRow[]> {
+  const response = await fetch(`${PUBLIC_CATALOG_URL}/rest/v1/drugs?${query}`, {
+    headers: {
+      apikey: PUBLIC_CATALOG_KEY,
+      Accept: "application/json",
+    },
+  });
+  if (!response.ok) throw new Error(`Catalog request failed (${response.status})`);
+  return (await response.json()) as DrugRow[];
+}
+
 /** Row shape shared by stored rows and ephemeral live-lookup results. */
 export type DrugRowLike = Omit<DrugRow, "id" | "created_at" | "updated_at"> & {
   source?: string | null;
@@ -99,22 +116,34 @@ export function rowToDrug(r: DrugRowLike): Drug {
 }
 
 export async function fetchAllDrugs(): Promise<Drug[]> {
-  const { data, error } = await supabase
-    .from("drugs")
-    .select("*")
-    .order("name", { ascending: true });
-  if (error) throw error;
-  return (data ?? []).map(rowToDrug);
+  try {
+    const { data, error } = await supabase
+      .from("drugs")
+      .select("*")
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return (data ?? []).map(rowToDrug);
+  } catch {
+    const rows = await fetchPublicRows("select=*&order=name.asc");
+    return rows.map(rowToDrug);
+  }
 }
 
 export async function fetchDrugBySlug(slug: string): Promise<Drug | null> {
-  const { data, error } = await supabase
-    .from("drugs")
-    .select("*")
-    .eq("slug", slug)
-    .maybeSingle();
-  if (error) throw error;
-  return data ? rowToDrug(data) : null;
+  try {
+    const { data, error } = await supabase
+      .from("drugs")
+      .select("*")
+      .eq("slug", slug)
+      .maybeSingle();
+    if (error) throw error;
+    return data ? rowToDrug(data) : null;
+  } catch {
+    const rows = await fetchPublicRows(
+      `select=*&slug=eq.${encodeURIComponent(slug)}&limit=1`,
+    );
+    return rows[0] ? rowToDrug(rows[0]) : null;
+  }
 }
 
 export function uniqueDrugClasses(drugs: Drug[]): string[] {
