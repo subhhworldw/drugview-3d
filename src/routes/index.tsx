@@ -6,6 +6,7 @@ import { fetchAllDrugs, filterDrugs, uniqueDrugClasses } from "@/lib/drugs-data"
 import { lookupDrug } from "@/lib/drug-lookup.functions";
 import { SourceBadge } from "@/components/source-badge";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
@@ -43,10 +44,14 @@ function Library() {
   const [q, setQ] = useState("");
   const [selectedClass, setSelectedClass] = useState<string | null>(null);
 
-  const { data: drugs = [], isLoading, error } = useQuery({
+  const { data: drugs = [], isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["drugs"],
     queryFn: fetchAllDrugs,
     staleTime: 5 * 60 * 1000,
+    retry: 5,
+    retryDelay: (attempt) => Math.min(1_000 * 2 ** attempt, 10_000),
+    refetchOnMount: "always",
+    refetchOnReconnect: "always",
   });
 
   const drugClasses = useMemo(() => uniqueDrugClasses(drugs), [drugs]);
@@ -423,8 +428,17 @@ function Library() {
         {isLoading ? (
           <div className="py-24 text-center text-muted-foreground">Loading drug library…</div>
         ) : error ? (
-          <div className="py-24 text-center text-destructive">
-            Failed to load drug library.
+          <div className="py-24 text-center">
+            <p role="alert" className="text-destructive">Failed to load drug library.</p>
+            <p className="mt-2 text-sm text-muted-foreground">Check your connection, then try again.</p>
+            <Button
+              className="mt-5"
+              disabled={isFetching}
+              onClick={() => void refetch()}
+              type="button"
+            >
+              {isFetching ? "Retrying…" : "Try again"}
+            </Button>
           </div>
         ) : results.length === 0 ? (
           <div className="py-24 text-center text-muted-foreground">
