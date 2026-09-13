@@ -199,6 +199,12 @@ function Library() {
             <div className="hidden font-mono text-[11px] uppercase tracking-widest text-muted-foreground md:block">
               {drugs.length} drugs · {drugClasses.length} classes
             </div>
+            <Link
+              to="/compare"
+              className="font-mono text-[11px] uppercase tracking-widest text-muted-foreground transition-colors hover:text-primary"
+            >
+              Compare ⇄
+            </Link>
             <ThemeToggle />
           </div>
         </div>
