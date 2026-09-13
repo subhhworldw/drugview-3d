@@ -292,7 +292,7 @@ function ComparisonTable({ a, b }: { a: Drug; b: Drug }) {
 
 function CompareCard({ drug }: { drug: Drug }) {
   return (
-    <div className="border-l border-border px-4 py-4">
+    <div className="min-w-0 border-l border-border px-4 py-4">
       <div className="flex items-center gap-2">
         <SourceBadge source={drug.source} />
       </div>
@@ -355,7 +355,7 @@ function Cell({
   barMax?: number;
 }) {
   return (
-    <div className={`border-t border-border px-4 py-3 text-sm md:border-l md:border-t-0 ${mono ? "font-mono" : ""}`}>
+    <div className={`min-w-0 border-t border-border px-4 py-3 text-sm md:border-l md:border-t-0 ${mono ? "font-mono" : ""}`}>
       {value ? (
         <>
           <span>{value}</span>
